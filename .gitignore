@@ -1,0 +1,57 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# https://github.com/github/gitignore/blob/master/Maven.gitignore
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/resources/archetype-resources/google-services.json
+
+# VS Code
+.vscode/
+
+# Eclipse
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS and Temp
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# Java
+*.class
+
+# Mobile/Android (in case of overlap, though this is fm-be)
+# .gradle/
+# build/
+# *.apk
+# *.ap_
+
+# Local Environment
+.env
+.env.local
+.env.*.local
+application-local.yml
+application-local.properties
+
+# Log files
+logs/
+*.log
