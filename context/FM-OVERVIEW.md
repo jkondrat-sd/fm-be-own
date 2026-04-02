@@ -15,4 +15,4 @@ This quotation covers the end-to-end design, development, testing, and deploymen
 | **Operations Monitoring Dashboard** | Real-time employee tracking, geofence exit alerts (\>5 min), device battery/signal/airplane mode audit, heatmap, employee onboarding (Aadhaar, PAN, ration card, police verification, PF & ESIC docs) | **V1** |
 | **Super Admin Panel**  | Full system access, user/role management, site CRUD, configuration, data export, product-owner control | **V1** |
 | **Multi-language Support**  | English, Hindi, Marathi across all V1 mobile modules  | **V1** |
-| **Backend &  Infrastructure** | Node.js API, PostgreSQL \+ PostGIS, Redis, NGINX, object storage (R2/S3), JWT auth, HTTPS, push notifications, BullMQ background jobs, 30-day data retention | **V1** |
+| **Backend &  Infrastructure** | Java 17 / Spring Boot 3.4 API, PostgreSQL \+ PostGIS, Redis, NGINX, object storage (R2/S3), JWT auth, HTTPS, push notifications, Spring Scheduler background jobs, 30-day data retention | **V1** |

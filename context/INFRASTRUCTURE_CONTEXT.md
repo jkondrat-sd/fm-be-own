@@ -61,40 +61,30 @@ services:
 
   api:
     build:
-      context: ../apps/api
+      context: ../fm-be
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
     environment:
-      NODE_ENV: development
-      DATABASE_URL: postgresql://fm_user:fm_dev_password@postgres:5432/fm_db
-      REDIS_URL: redis://redis:6379
-      S3_ENDPOINT: http://minio:9000
-      S3_ACCESS_KEY: minio_admin
-      S3_SECRET_KEY: minio_password
-      S3_BUCKET: fm-media
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fm_db
+      SPRING_DATASOURCE_USERNAME: fm_user
+      SPRING_DATASOURCE_PASSWORD: fm_dev_password
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_ACCESS_KEY: minio_admin
+      STORAGE_SECRET_KEY: minio_password
+      STORAGE_BUCKET: fm-media
       JWT_SECRET: dev-jwt-secret-change-in-production
-      JWT_ACCESS_TTL: 15m
-      JWT_REFRESH_TTL: 7d
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ../apps/api/src:/app/src  # Hot reload
+    # Note: Spring Boot @Async/@Scheduled handles background jobs internally.
+    # No separate worker service needed (unlike Node.js/BullMQ).
 
-  bullmq-worker:
-    build:
-      context: ../apps/api
-      dockerfile: Dockerfile
-    command: node dist/jobs/worker.js
-    environment:
-      # Same env as api
-      DATABASE_URL: postgresql://fm_user:fm_dev_password@postgres:5432/fm_db
-      REDIS_URL: redis://redis:6379
-    depends_on:
-      - api
 
 volumes:
   postgres_data:
@@ -118,15 +108,15 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 ```
 Architecture:
-  NGINX (80/443) → PM2 (API :8080, :8081) → PostgreSQL (:5432) + Redis (:6379)
+  NGINX (80/443) → systemd (Spring Boot JAR :8080, :8081) → PostgreSQL (:5432) + Redis (:6379)
   Static assets (web-portal, client-portal) served by NGINX directly
 
 Prerequisites:
-  - Node.js 20 LTS (via nvm)
+  - Java 17 LTS (via SDKMAN or apt)
   - PostgreSQL 16 + PostGIS 3.4
   - Redis 7
   - NGINX
-  - PM2 (process manager)
+  - systemd (process manager for Spring Boot JAR instances)
   - Certbot (Let's Encrypt SSL)
   - UFW firewall
 
@@ -288,39 +278,41 @@ server {
 }
 ```
 
-### 3.3 PM2 Ecosystem
+### 3.3 systemd Service Configuration
 
-```javascript
-// infrastructure/ecosystem.config.js
-module.exports = {
-  apps: [
-    {
-      name: 'fm-api-1',
-      script: 'dist/main.js',
-      cwd: '/var/www/fm-api',
-      instances: 1,
-      env: { PORT: 8080, NODE_ENV: 'production' },
-      max_memory_restart: '512M',
-      error_file: '/var/log/fm/api-1-error.log',
-      out_file: '/var/log/fm/api-1-out.log',
-    },
-    {
-      name: 'fm-api-2',
-      script: 'dist/main.js',
-      cwd: '/var/www/fm-api',
-      instances: 1,
-      env: { PORT: 8081, NODE_ENV: 'production' },
-      max_memory_restart: '512M',
-    },
-    {
-      name: 'fm-worker',
-      script: 'dist/jobs/worker.js',
-      cwd: '/var/www/fm-api',
-      instances: 2,
-      max_memory_restart: '1G',
-    },
-  ],
-};
+```ini
+# /etc/systemd/system/fm-api-1.service
+[Unit]
+Description=Facility Management API Instance 1
+After=network.target postgresql.service redis.service
+
+[Service]
+Type=simple
+User=fm
+Group=fm
+WorkingDirectory=/opt/fm-be
+ExecStart=/usr/bin/java -Xms256m -Xmx512m -jar fm-be.jar --server.port=8080 --spring.profiles.active=prod
+Restart=always
+RestartSec=10
+EnvironmentFile=/opt/fm-be/.env
+StandardOutput=append:/var/log/fm/api-1.log
+StandardError=append:/var/log/fm/api-1-error.log
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```ini
+# /etc/systemd/system/fm-api-2.service — identical but port 8081
+# Copy fm-api-1.service, change --server.port=8081 and log paths
+```
+
+```bash
+# Management commands
+sudo systemctl enable fm-api-1 fm-api-2
+sudo systemctl start fm-api-1 fm-api-2
+sudo systemctl status fm-api-1 fm-api-2
+sudo journalctl -u fm-api-1 -f  # Follow logs
 ```
 
 ---
@@ -348,10 +340,12 @@ Schedule via cron: `0 2 * * * /var/www/fm-api/infrastructure/scripts/backup-db.s
 
 ### 4.2 Migrations
 ```bash
-# Run Prisma migrations
-cd /var/www/fm-api
-npx prisma migrate deploy  # Production: applies pending migrations
-npx prisma migrate dev     # Development: creates + applies migrations
+# Flyway migrations (embedded in Spring Boot, runs on application startup)
+# Production: Flyway runs automatically when spring.flyway.enabled=true
+# Development: Flyway runs automatically on startup against local PostgreSQL
+
+# Manual migration (if needed outside Spring Boot):
+mvn flyway:migrate -Dflyway.url=jdbc:postgresql://localhost:5432/fm_db -Dflyway.user=fm_user -Dflyway.password=fm_dev_password
 ```
 
 ### 4.3 PostGIS Indexes
@@ -386,7 +380,7 @@ GET /v1/health → {
 ```
 
 ### 5.2 Log Management
-- API logs → `/var/log/fm/` (PM2 managed)
+- API logs → `/var/log/fm/` (systemd managed)
 - NGINX logs → `/var/log/nginx/`
 - PostgreSQL logs → `/var/log/postgresql/`
 - **Log rotation**: `logrotate` configured to rotate daily, keep 14 days
@@ -427,7 +421,7 @@ systemctl enable fail2ban
 | Database | Single PostgreSQL | Read replicas, connection pooling (PgBouncer) |
 | Redis | Single instance | Redis Cluster or managed (ElastiCache) |
 | Object Storage | Cloudflare R2 | Same (R2 scales automatically) |
-| Background Jobs | 2 BullMQ workers | Auto-scaling workers |
+| Background Jobs | Spring @Async / @Scheduled (embedded) | Dedicated worker instances or Kubernetes Jobs |
 | CDN | Cloudflare | Same |
 | Location ingestion | Direct API | Consider message queue (Kafka/NATS) |
 | Search | PostgreSQL FTS | Elasticsearch/Typesense |
@@ -438,7 +432,7 @@ systemctl enable fail2ban
 
 | Variable | Dev | Staging | Production |
 |----------|-----|---------|------------|
-| `NODE_ENV` | development | staging | production |
+| `SPRING_PROFILES_ACTIVE` | dev | staging | prod |
 | `DATABASE_URL` | Docker local | staging VPS | production VPS |
 | `REDIS_URL` | Docker local | staging VPS | production VPS |
 | `JWT_SECRET` | static dev key | unique | unique (rotated quarterly) |

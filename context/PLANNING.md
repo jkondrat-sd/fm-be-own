@@ -30,7 +30,7 @@ A facility management platform enabling companies to manage field employees, tra
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     BACKEND API (Node.js / NestJS)                 │
+│                  BACKEND API (Java 17 / Spring Boot 3.4)           │
 │                                                                     │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
 │  │   Auth   │ │Attendance│ │ Payroll  │ │   Ops    │ │  Admin   │ │
@@ -43,8 +43,8 @@ A facility management platform enabling companies to manage field employees, tra
 └────────┬────────────┬────────────┬────────────┬─────────────────────┘
          │            │            │            │
     ┌────▼────┐  ┌────▼────┐ ┌────▼────┐ ┌────▼─────┐
-    │PostgreSQL│  │  Redis  │ │ BullMQ  │ │Object    │
-    │+ PostGIS │  │ Cache   │ │  Jobs   │ │Storage   │
+    │PostgreSQL│  │  Redis  │ │ Spring  │ │Object    │
+    │+ PostGIS │  │ Cache   │ │Scheduler│ │Storage   │
     │          │  │         │ │         │ │(R2/S3)   │
     └──────────┘  └─────────┘ └─────────┘ └──────────┘
 ```
@@ -53,13 +53,13 @@ A facility management platform enabling companies to manage field employees, tra
 
 | Service              | Tech Stack                      | Purpose                                              | Port (Dev) |
 |----------------------|---------------------------------|------------------------------------------------------|------------|
-| **Android App**      | Kotlin, Jetpack Compose, Hilt   | Employee mobile app: attendance, tasks, site updates  | N/A        |
+| **Mobile App**       | Flutter (Dart), Provider        | Employee mobile app: attendance, tasks, site updates  | N/A        |
 | **Web Portal**       | React (Vite), TypeScript        | Admin, Ops Dashboard, Payroll, Super Admin            | 3000       |
 | **Client Portal**    | React (Vite), TypeScript        | Client-facing attendance reports (read-only)          | 3001       |
-| **Backend API**      | Node.js, NestJS, TypeScript     | Core business logic, REST API                         | 8080       |
+| **Backend API**      | Java 17, Spring Boot 3.4, Maven | Core business logic, REST API                         | 8080       |
 | **Database**         | PostgreSQL 16 + PostGIS 3.4     | Primary data store with geospatial support            | 5432       |
 | **Cache**            | Redis 7                         | Session cache, rate limiting, real-time data          | 6379       |
-| **Job Queue**        | BullMQ (on Redis)               | Background jobs: payroll, cleanup, heatmaps           | —          |
+| **Job Queue**        | Spring Scheduler / @Async       | Background jobs: payroll, cleanup, heatmaps           | —          |
 | **Object Storage**   | Cloudflare R2 / AWS S3          | Images, videos, documents                             | —          |
 | **Reverse Proxy**    | NGINX                           | SSL termination, routing, rate limiting               | 80/443     |
 | **Push Notifications** | Firebase Cloud Messaging (FCM) | Shift reminders, geofence alerts, admin broadcasts    | —          |
@@ -68,15 +68,15 @@ A facility management platform enabling companies to manage field employees, tra
 
 ## 3. Technology Decisions & Rationale
 
-### 3.1 Backend: NestJS (TypeScript)
-- **Why**: Modular architecture with dependency injection, built-in validation (class-validator), guards, interceptors. Perfect for a multi-module platform.
-- **Impact on all agents**: Every client must conform to the REST API contracts defined by NestJS controllers. DTOs are the canonical data shape.
-- **ORM**: Prisma — type-safe queries, auto-generated types shared across backend modules, easy migrations.
+### 3.1 Backend: Java 17 + Spring Boot 3.4
+- **Why**: Enterprise-grade framework with mature dependency injection (Spring IoC), built-in validation (Bean Validation / Hibernate Validator), Spring Security for auth guards, and interceptors. Battle-tested for multi-module platforms.
+- **Impact on all agents**: Every client must conform to the REST API contracts defined by Spring `@RestController` classes. DTOs with Jakarta Validation annotations are the canonical data shape.
+- **ORM**: Spring Data JPA + Hibernate Spatial — type-safe JPA repositories, Hibernate Spatial for PostGIS geospatial queries, Flyway/Liquibase for migrations.
 
-### 3.2 Mobile: Kotlin + Jetpack Compose
-- **Why**: Modern Android-first development, excellent performance, coroutine-based async for background location tracking.
+### 3.2 Mobile: Flutter (Dart) — Cross-Platform
+- **Why**: Single codebase targeting Android (primary) with iOS expansion path. Fast iteration, hot reload, and strong widget system for UI.
 - **Impact on all agents**: Mobile consumes the same REST API endpoints as Web Portal. Shared API contract is critical.
-- **Offline-first**: Mobile MUST cache attendance punches locally (Room DB) and sync when connectivity resumes. Backend MUST handle idempotent punch submissions.
+- **Offline-first**: Mobile MUST cache attendance punches locally (sqflite/Hive) and sync when connectivity resumes. Backend MUST handle idempotent punch submissions.
 
 ### 3.3 Web: React + Vite + TypeScript
 - **Why**: Fast build times (Vite), strong typing (TypeScript), rich ecosystem for dashboards (charts, maps, data tables).
@@ -87,8 +87,8 @@ A facility management platform enabling companies to manage field employees, tra
 - **Why**: PostGIS enables geospatial queries (geofence containment checks `ST_Contains`, distance calculations, heatmap aggregation) without external services.
 - **Impact on all agents**: All location data is stored as `geography(Point, 4326)`. Mobile sends `{lat, lng, accuracy, timestamp}`. Backend validates and stores.
 
-### 3.5 Cache & Queue: Redis + BullMQ
-- **Why**: Single Redis instance serves both caching and job queuing, reducing infrastructure complexity.
+### 3.5 Cache & Scheduling: Redis + Spring Scheduler
+- **Why**: Redis for caching and real-time data. Spring's built-in `@Scheduled` and `@Async` for background job processing, reducing infrastructure complexity.
 - **Impact on all agents**: Real-time employee location is in Redis (TTL-based), not PostgreSQL. Dashboard reads from Redis for live tracking, PostgreSQL for historical data.
 
 ---
@@ -107,8 +107,9 @@ A facility management platform enabling companies to manage field employees, tra
 │  Roles: EMPLOYEE, SUPERVISOR, ADMIN, SUPER_ADMIN,│
 │          CLIENT                                   │
 │                                                   │
-│  Guards: @Roles() decorator on NestJS controllers │
-│  Mobile: Store tokens in EncryptedSharedPrefs     │
+│  Guards: @PreAuthorize / @Secured on Spring       │
+│         controllers                                │
+│  Mobile: Store tokens in Flutter Secure Storage   │
 │  Web:    Store access token in memory,            │
 │          refresh token in httpOnly cookie          │
 └─────────────────────────────────────────────────┘
@@ -117,7 +118,7 @@ A facility management platform enabling companies to manage field employees, tra
 - **JWT payload**: `{ sub: userId, role: Role, siteIds: string[], iat, exp }`
 - **Access token TTL**: 15 minutes
 - **Refresh token TTL**: 7 days (mobile: 30 days)
-- **All agents**: Never store access tokens in localStorage. Mobile uses EncryptedSharedPreferences. Web uses in-memory variable.
+- **All agents**: Never store access tokens in localStorage. Mobile uses Flutter Secure Storage / Hive encrypted box. Web uses in-memory variable.
 
 ### 4.2 API Contract Standards
 - **Base URL**: `https://api.fm.example.com/v1`
@@ -167,7 +168,7 @@ All clients MUST handle these error codes:
 
 ### 4.4 Multi-Language (i18n)
 - **Supported**: English (`en`), Hindi (`hi`), Marathi (`mr`)
-- **Mobile**: Android string resources (`strings.xml` per locale)
+- **Mobile**: Flutter `intl` / ARB files per locale
 - **Web**: `react-i18next` with JSON translation files
 - **Backend**: Error messages returned with `code` (machine-readable). Human-readable messages are client-side responsibility.
 - **API**: Client sends `Accept-Language` header. Backend uses it only for email/SMS templates.
@@ -176,9 +177,9 @@ All clients MUST handle these error codes:
 - **Upload flow**: Client → Presigned URL from API → Direct upload to R2/S3 → Confirm upload to API
 - **Max file sizes**: Images: 5MB, Videos: 50MB, Documents (PDF): 10MB
 - **Supported formats**: Images: JPEG, PNG, WebP. Videos: MP4, MOV. Documents: PDF
-- **Thumbnails**: Generated on upload by a BullMQ job (sharp for images, ffmpeg for video)
+- **Thumbnails**: Generated on upload by a Spring @Async task (thumbnailator for images, ffmpeg for video)
 - **CDN**: Serve all media via CDN URL. Never expose raw storage URLs to clients.
-- **30-day retention**: Location snapshots and site update images older than 30 days are purged by a scheduled BullMQ job. Payroll documents are retained indefinitely.
+- **30-day retention**: Location snapshots and site update images older than 30 days are purged by a Spring `@Scheduled` job. Payroll documents are retained indefinitely.
 
 ### 4.6 Real-Time Data Strategy
 ```
@@ -256,18 +257,18 @@ All clients MUST handle these error codes:
 ┌───────────────────── Production VPS ──────────────────────┐
 │                                                            │
 │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐     │
-│  │  NGINX  │  │ NestJS  │  │ NestJS  │  │  Redis  │     │
-│  │ (proxy) │─▶│ API (1) │  │ API (2) │  │         │     │
+│  │  NGINX  │  │ Spring  │  │ Spring  │  │  Redis  │     │
+│  │ (proxy) │─▶│Boot (1) │  │Boot (2) │  │         │     │
 │  │ :80/443 │  │ :8080   │  │ :8081   │  │ :6379   │     │
 │  └─────────┘  └─────────┘  └─────────┘  └─────────┘     │
 │                                                            │
 │  ┌─────────┐  ┌─────────┐  ┌─────────────────────────┐   │
-│  │ BullMQ  │  │PostgreSQL│  │ Web Portal (Static,     │   │
-│  │ Workers │  │ + PostGIS│  │ served via NGINX/CDN)   │   │
-│  │ (2)     │  │ :5432    │  │                         │   │
+│  │ Spring  │  │PostgreSQL│  │ Web Portal (Static,     │   │
+│  │Scheduled│  │ + PostGIS│  │ served via NGINX/CDN)   │   │
+│  │ Tasks   │  │ :5432    │  │                         │   │
 │  └─────────┘  └─────────┘  └─────────────────────────┘   │
 │                                                            │
-│  Managed by: Docker Compose (dev) / PM2 (prod)           │
+│  Managed by: Docker Compose (dev) / systemd (prod)       │
 │  OS: Ubuntu 22.04 LTS                                     │
 └────────────────────────────────────────────────────────────┘
 
@@ -279,7 +280,7 @@ External:
 
 - **Dev**: Docker Compose for full stack local development.
 - **Staging**: Same VPS layout, separate subdomain (`staging.fm.example.com`).
-- **Prod**: PM2 with 2 API instances behind NGINX load balancing. PostgreSQL with daily automated backups. Redis with AOF persistence.
+- **Prod**: systemd with 2 Spring Boot JAR instances behind NGINX load balancing. PostgreSQL with daily automated backups. Redis with AOF persistence.
 
 ---
 
@@ -289,9 +290,9 @@ External:
 |---------|----------|-------|
 | **API Response Time** | Target <200ms p95. Use Redis caching for hot paths (employee profile, current shift). | Backend |
 | **Location Ingestion** | 3,000 users × 1 req/30s = 100 req/s sustained. Batch-insert to PostgreSQL every 5 min. | Backend |
-| **Payroll Computation** | Async via BullMQ. Never compute in API request cycle. Progress via polling. | Backend |
+| **Payroll Computation** | Async via Spring `@Async`. Never compute in API request cycle. Progress via polling. | Backend |
 | **Dashboard Live View** | Redis-backed polling (10s). Max 500 concurrent dashboard users. | Backend + Web |
-| **Mobile Battery** | Geolocation sampling: 30s on-shift, GPS turned off when off-shift. Use Android WorkManager for reliability. | Mobile |
+| **Mobile Battery** | Geolocation sampling: 30s on-shift, GPS turned off when off-shift. Use Flutter background services for reliability. | Mobile |
 | **Image Uploads** | Presigned URL → direct to R2/S3. Never proxy through API server. | All clients |
 | **Database Indexing** | B-tree on FKs and filter columns. GiST on geofence polygons. Partial indexes on `status` columns. | Backend |
 
@@ -300,16 +301,16 @@ External:
 ## 8. Security Checklist (All Agents)
 
 - [ ] All API calls over HTTPS. No HTTP fallback.
-- [ ] JWT tokens validated on every request (NestJS guard).
+- [ ] JWT tokens validated on every request (Spring Security filter chain).
 - [ ] Role-based access on every endpoint.
-- [ ] Input validation on every API endpoint (class-validator DTOs).
-- [ ] SQL injection prevention (Prisma parameterized queries).
+- [ ] Input validation on every API endpoint (Jakarta Bean Validation DTOs).
+- [ ] SQL injection prevention (JPA parameterized queries / named parameters).
 - [ ] Rate limiting on auth endpoints (10 req/min per IP).
 - [ ] Rate limiting on location updates (1 req/10s per user).
 - [ ] PII fields encrypted at rest (pgcrypto).
 - [ ] Audit log for all admin write operations.
-- [ ] Mobile: certificate pinning for API domain.
-- [ ] Mobile: ProGuard/R8 obfuscation enabled.
+- [ ] Mobile: certificate pinning for API domain (Flutter `http` client).
+- [ ] Mobile: code obfuscation enabled (`flutter build apk --obfuscate`).
 - [ ] Web: CSP headers, XSS protection.
 - [ ] Media: Presigned URLs expire in 15 minutes.
 - [ ] No sensitive data in URL query parameters.
@@ -326,10 +327,11 @@ External:
 | **API endpoints** | kebab-case, plural | `/v1/attendance-logs`, `/v1/payroll-runs` |
 | **API query params** | camelCase | `?startDate=2026-03-01&siteId=abc` |
 | **JSON response fields** | camelCase | `punchInTime`, `isActive` |
-| **TypeScript files** | kebab-case | `attendance.service.ts`, `payroll.controller.ts` |
-| **TypeScript classes** | PascalCase | `AttendanceService`, `PayrollController` |
-| **Kotlin files** | PascalCase | `AttendanceViewModel.kt` |
-| **Kotlin classes** | PascalCase | `AttendanceViewModel` |
+| **Java files** | PascalCase | `AttendanceService.java`, `PayrollController.java` |
+| **Java classes** | PascalCase | `AttendanceService`, `PayrollController` |
+| **Java packages** | lowercase dot-separated | `com.fm.modules.attendance` |
+| **Dart files** | snake_case | `attendance_screen.dart`, `punch_provider.dart` |
+| **Dart classes** | PascalCase | `AttendanceScreen`, `PunchProvider` |
 | **React components** | PascalCase | `EmployeeList.tsx`, `PayrollDashboard.tsx` |
 | **CSS** | BEM or CSS Modules | `.attendance-card__header--active` |
 | **Env variables** | SCREAMING_SNAKE | `DATABASE_URL`, `JWT_SECRET` |
@@ -340,29 +342,25 @@ External:
 ## 10. Repository Structure
 
 ```
-fm-platform/
-├── apps/
-│   ├── api/                    # NestJS Backend API
-│   ├── web-portal/             # React Web Portal (Admin/Ops/Payroll/SuperAdmin)
-│   ├── client-portal/          # React Client Attendance Portal
-│   └── mobile/                 # Kotlin Android App
-├── packages/
-│   ├── shared-types/           # TypeScript types shared between api + web
-│   ├── ui-components/          # Shared React component library
-│   └── api-client/             # Generated API client (from OpenAPI spec)
-├── infrastructure/
-│   ├── docker-compose.yml      # Local dev environment
-│   ├── nginx/                  # NGINX configs
-│   └── scripts/                # Deployment, backup, migration scripts
-├── docs/
-│   ├── api/                    # OpenAPI/Swagger specs
-│   └── architecture/           # Architecture decision records (ADRs)
-├── PLANNING.md                 # This file
-├── TASK.md                     # Current task tracking
-└── README.md                   # Getting started
+facility-management-app-cluster/
+├── fm-be/                      # Spring Boot Backend API (Java 17, Maven)
+│   ├── src/main/java/com/fm/   # Application source
+│   ├── src/main/resources/     # application.yml, migrations
+│   ├── src/test/               # Unit & integration tests
+│   ├── pom.xml                 # Maven project config
+│   └── context/                # Architecture documentation (this file)
+├── fm-mobile/                  # Flutter Mobile App (Dart)
+│   ├── lib/                    # Application source
+│   ├── android/                # Android platform config
+│   ├── ios/                    # iOS platform config (V2)
+│   ├── pubspec.yaml            # Dart dependencies
+│   └── test/                   # Widget & unit tests
+├── web-portal/                 # React Web Portal (planned)
+├── client-portal/              # React Client Portal (planned)
+└── infrastructure/             # Docker, NGINX, deployment scripts
 ```
 
-> **Monorepo approach** using **Turborepo** for build orchestration. Shared types ensure API contracts are enforced at compile time between backend and frontend.
+> **Multi-repo cluster approach**. Each service is a separate Git repository within the `facility-management-app-cluster` directory. API contracts are enforced via shared OpenAPI specs.
 
 ---
 
@@ -386,11 +384,11 @@ Mobile → POST /v1/attendance/punch-in { lat, lng, faceImageUrl, timestamp }
 ```
 Web Portal → POST /v1/payroll/run { month, year }
   → Backend creates payroll_run record (status: PROCESSING)
-  → Backend enqueues BullMQ job "process-payroll"
+  → Backend enqueues @Async task "process-payroll"
   → Returns { jobId } immediately
   → Web polls GET /v1/payroll/run/{jobId}/status
   
-BullMQ Worker:
+Spring @Async Worker:
   → Fetches all active employees
   → For each: calculate gross, deductions (PF 12%, ESIC, TDS slab, PT)
   → Generate salary slips
@@ -441,38 +439,57 @@ These features are NOT in V1, but agents MUST design schemas, APIs, and componen
 
 ## 13. Environment Variables (All Services)
 
-```env
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/fm_db
-REDIS_URL=redis://localhost:6379
+```yaml
+# application.yml (Spring Boot)
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/fm_db
+    username: fm_user
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG96Dialect
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 # Auth
-JWT_SECRET=<random-256-bit>
-JWT_ACCESS_TTL=15m
-JWT_REFRESH_TTL=7d
-OTP_EXPIRY=300
+jwt:
+  secret: ${JWT_SECRET}       # random-256-bit
+  access-ttl: 15m
+  refresh-ttl: 7d
+  otp-expiry: 300
 
-# Storage
-S3_ENDPOINT=https://xxx.r2.cloudflarestorage.com
-S3_ACCESS_KEY=<key>
-S3_SECRET_KEY=<secret>
-S3_BUCKET=fm-media
-CDN_BASE_URL=https://media.fm.example.com
+# Storage (Cloudflare R2 / AWS S3)
+storage:
+  endpoint: https://xxx.r2.cloudflarestorage.com
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}
+  bucket: fm-media
+  cdn-base-url: https://media.fm.example.com
 
 # Push Notifications
-FCM_SERVER_KEY=<firebase-key>
-FCM_PROJECT_ID=<firebase-project>
+fcm:
+  server-key: ${FCM_SERVER_KEY}
+  project-id: ${FCM_PROJECT_ID}
 
 # Payroll
-PF_RATE=0.12
-ESIC_THRESHOLD=21000
-TDS_SLABS=<json-encoded-slabs>
+payroll:
+  pf-rate: 0.12
+  esic-threshold: 21000
 
-# App
-NODE_ENV=production
-API_PORT=8080
-CORS_ORIGINS=https://portal.fm.example.com,https://client.fm.example.com
-LOG_LEVEL=info
+# Server
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.fm: DEBUG
 ```
 
 ---
@@ -481,13 +498,14 @@ LOG_LEVEL=info
 
 | Layer | Tool | Minimum Coverage |
 |-------|------|-----------------|
-| **Backend Unit** | Jest | 80% on services/modules |
-| **Backend Integration** | Jest + Supertest | All endpoints |
-| **Backend E2E** | Jest + TestContainers | Critical flows (auth, punch, payroll) |
+| **Backend Unit** | JUnit 5 + Mockito | 80% on services/modules |
+| **Backend Integration** | Spring Boot Test + MockMvc | All endpoints |
+| **Backend E2E** | Testcontainers (PostgreSQL, Redis) | Critical flows (auth, punch, payroll) |
 | **Web Unit** | Vitest | 70% on components |
 | **Web E2E** | Playwright | All user journeys |
-| **Mobile Unit** | JUnit 5 + MockK | 70% on ViewModels |
-| **Mobile UI** | Espresso / Compose Testing | Critical screens |
+| **Mobile Unit** | Flutter test + Mockito | 70% on Providers/Services |
+| **Mobile Widget** | Flutter widget testing | Critical screens |
+| **Mobile Integration** | Flutter integration_test | Login → Punch → Site Update |
 | **API Contract** | OpenAPI validation | All DTOs match spec |
 
 ---

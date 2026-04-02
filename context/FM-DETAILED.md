@@ -72,7 +72,7 @@ This document outlines the scope of work for the design, development, testing, a
 
 ## 2.8 Backend Infrastructure & Deployment##  
 
-• Node.js API server with Express/NestJS 
+• Java 17 / Spring Boot 3.4 API server with Maven 
 
 • PostgreSQL database with PostGIS extension for location queries 
 
@@ -84,7 +84,7 @@ This document outlines the scope of work for the design, development, testing, a
 
 • Push notification service integration 
 
-• BullMQ background job processing (data cleanup, payroll, heatmap aggregation) • Automated 30-day data retention policy for location and image data 
+• Spring Scheduler / @Async background job processing (data cleanup, payroll, heatmap aggregation) • Automated 30-day data retention policy for location and image data 
 
 • Production deployment, server configuration, and handover documentation 
 

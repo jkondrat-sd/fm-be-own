@@ -1,0 +1,59 @@
+# ============================================================
+# FM-BE — Test Profile
+# ============================================================
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  flyway:
+    enabled: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# --- Logging ---
+logging:
+  level:
+    root: WARN
+    com.fm.be: INFO
+
+# --- Test JWT ---
+app:
+  jwt:
+    secret: test-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm-padding-here
+    access-token-expiration-ms: 3600000
+    refresh-token-expiration-ms: 86400000
+    mobile-refresh-expiration-ms: 86400000
+  cors:
+    allowed-origins: http://localhost:3000
+  fcm:
+    enabled: false
+  storage:
+    endpoint: http://localhost:9000
+    access-key: testkey
+    secret-key: testsecret
+    bucket-name: test-bucket
+    region: us-east-1
+    presigned-url-expiration-minutes: 15
+  async:
+    core-pool-size: 1
+    max-pool-size: 2
+    queue-capacity: 10
+  rate-limit:
+    otp-requests-per-minute: 5
+    location-updates-per-10s: 1
+    default-requests-per-minute: 100
