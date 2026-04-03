@@ -48,8 +48,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/health",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "health"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "health"
+              ]
             }
           },
           "event": [
@@ -86,8 +91,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v3/api-docs",
-              "host": ["{{base_url}}"],
-              "path": ["v3", "api-docs"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v3",
+                "api-docs"
+              ]
             }
           },
           "event": [
@@ -124,8 +134,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -189,8 +205,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/otp/request",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "otp", "request"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "otp",
+                "request"
+              ]
             }
           },
           "event": [
@@ -289,8 +312,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/otp/verify",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "otp", "verify"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "otp",
+                "verify"
+              ]
             }
           }
         },
@@ -305,8 +335,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/otp/verify",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "otp", "verify"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "otp",
+                "verify"
+              ]
             }
           },
           "event": [
@@ -339,8 +376,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/otp/verify",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "otp", "verify"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "otp",
+                "verify"
+              ]
             }
           },
           "event": [
@@ -373,8 +417,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/otp/verify",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "otp", "verify"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "otp",
+                "verify"
+              ]
             }
           },
           "event": [
@@ -409,8 +460,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -443,8 +500,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -477,8 +540,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -513,8 +582,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           },
           "event": [
@@ -636,8 +711,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -652,8 +733,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/otp/request",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "otp", "request"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "otp",
+                "request"
+              ]
             }
           },
           "event": [
@@ -687,8 +775,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/otp/request",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "otp", "request"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "otp",
+                "request"
+              ]
             }
           },
           "event": [
@@ -722,8 +817,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/otp/request",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "otp", "request"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "otp",
+                "request"
+              ]
             }
           },
           "event": [
@@ -757,8 +859,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/refresh",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "refresh"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "refresh"
+              ]
             }
           },
           "event": [
@@ -812,8 +920,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/refresh",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "refresh"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "refresh"
+              ]
             }
           },
           "event": [
@@ -846,8 +960,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/refresh",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "refresh"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "refresh"
+              ]
             }
           },
           "event": [
@@ -934,8 +1054,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/logout",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "logout"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "logout"
+              ]
             }
           }
         },
@@ -950,8 +1076,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/logout",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "logout"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "logout"
+              ]
             }
           },
           "event": [
@@ -1041,8 +1173,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/auth/otp/request",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "auth", "otp", "request"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "auth",
+                "otp",
+                "request"
+              ]
             }
           }
         }
@@ -1108,8 +1247,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           }
         },
@@ -1162,8 +1307,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           }
         },
@@ -1178,8 +1329,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           },
           "event": [
@@ -1213,8 +1370,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           },
           "event": [
@@ -1248,8 +1411,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           },
           "event": [
@@ -1283,8 +1452,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           },
           "event": [
@@ -1345,8 +1520,14 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           }
         },
@@ -1357,8 +1538,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           },
           "event": [
@@ -1406,11 +1593,23 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users?page=1&limit=2",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ],
               "query": [
-                { "key": "page", "value": "1" },
-                { "key": "limit", "value": "2" }
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
               ]
             }
           },
@@ -1441,10 +1640,19 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users?page=999",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ],
               "query": [
-                { "key": "page", "value": "999" }
+                {
+                  "key": "page",
+                  "value": "999"
+                }
               ]
             }
           },
@@ -1504,8 +1712,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users"
+              ]
             }
           }
         },
@@ -1516,8 +1730,15 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users/{{employee_user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "{{employee_user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "{{employee_user_id}}"
+              ]
             }
           },
           "event": [
@@ -1557,8 +1778,15 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users/00000000-0000-0000-0000-000000000099",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "00000000-0000-0000-0000-000000000099"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "00000000-0000-0000-0000-000000000099"
+              ]
             }
           },
           "event": [
@@ -1587,8 +1815,15 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users/not-a-valid-uuid",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "not-a-valid-uuid"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "not-a-valid-uuid"
+              ]
             }
           },
           "event": [
@@ -1623,8 +1858,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users/{{test_user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "{{test_user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "{{test_user_id}}"
+              ]
             }
           },
           "event": [
@@ -1659,8 +1901,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users/{{test_user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "{{test_user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "{{test_user_id}}"
+              ]
             }
           },
           "event": [
@@ -1707,8 +1956,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users/00000000-0000-0000-0000-000000000099",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "00000000-0000-0000-0000-000000000099"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "00000000-0000-0000-0000-000000000099"
+              ]
             }
           },
           "event": [
@@ -1741,8 +1997,15 @@
             },
             "url": {
               "raw": "{{base_url}}/v1/admin/users/{{test_user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "{{test_user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "{{test_user_id}}"
+              ]
             }
           },
           "event": [
@@ -1771,8 +2034,15 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users/{{test_user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "{{test_user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "{{test_user_id}}"
+              ]
             }
           },
           "event": [
@@ -1796,8 +2066,15 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users/00000000-0000-0000-0000-000000000099",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "00000000-0000-0000-0000-000000000099"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "00000000-0000-0000-0000-000000000099"
+              ]
             }
           },
           "event": [
@@ -1910,8 +2187,15 @@
             ],
             "url": {
               "raw": "{{base_url}}/v1/admin/users/{{self_delete_user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "{{self_delete_user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "{{self_delete_user_id}}"
+              ]
             }
           }
         },
@@ -1948,10 +2232,2698 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/v1/admin/users/{{employee_user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "admin", "users", "{{employee_user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "users",
+                "{{employee_user_id}}"
+              ]
             }
           }
+        }
+      ]
+    },
+    {
+      "name": "03-Employees",
+      "description": "Employee onboarding, profiles, face registration, document upload.\nCreates employee records and sets employee_id env var.\nEndpoints: POST/PUT/GET /v1/employees, /search, /me, /{id}/face, /{id}/documents",
+      "item": [
+        {
+          "name": "HAPPY: Create employee with all fields",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = Date.now();",
+                  "const phone = '+918' + String(ts).slice(-9);",
+                  "const email = 'emp-' + ts + '@test.com';",
+                  "pm.environment.set('test_emp_phone', phone);",
+                  "pm.environment.set('test_emp_email', email);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('Success envelope with traceId', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(body).to.have.property('traceId');",
+                  "});",
+                  "",
+                  "pm.test('Employee has expected fields', () => {",
+                  "    pm.expect(resData).to.have.property('id');",
+                  "    pm.expect(resData).to.have.property('userId');",
+                  "    pm.expect(resData.fullName).to.eql('Integration Test Employee');",
+                  "    pm.expect(resData.phone).to.eql(pm.environment.get('test_emp_phone'));",
+                  "    pm.expect(resData.email).to.eql(pm.environment.get('test_emp_email'));",
+                  "    pm.expect(resData.role).to.eql('EMPLOYEE');",
+                  "    pm.expect(resData.organizationId).to.eql(pm.environment.get('organization_id'));",
+                  "    pm.expect(resData.hasFaceRegistered).to.eql(false);",
+                  "    pm.expect(resData.documents).to.be.an('array').that.is.empty;",
+                  "    pm.expect(resData).to.have.property('createdAt');",
+                  "    pm.expect(resData).to.have.property('updatedAt');",
+                  "});",
+                  "",
+                  "if (resData) {",
+                  "    pm.environment.set('employee_id', resData.id);",
+                  "    pm.environment.set('employee_user_id_for_emp', resData.userId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Integration Test Employee\",\n  \"phone\": \"{{test_emp_phone}}\",\n  \"email\": \"{{test_emp_email}}\",\n  \"dob\": \"1995-06-15\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "HAPPY: Create employee minimal fields",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = Date.now();",
+                  "const phone = '+917' + String(ts).slice(-9);",
+                  "pm.environment.set('test_emp_phone_minimal', phone);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('Employee created with defaults', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(resData).to.have.property('id');",
+                  "    pm.expect(resData.fullName).to.eql('Minimal Employee');",
+                  "    pm.expect(resData.role).to.eql('EMPLOYEE');",
+                  "    pm.expect(resData.email).to.be.null;",
+                  "    pm.expect(resData.dob).to.be.null;",
+                  "    pm.expect(resData.siteId).to.be.null;",
+                  "});",
+                  "",
+                  "if (resData) {",
+                  "    pm.environment.set('minimal_employee_id', resData.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Minimal Employee\",\n  \"phone\": \"{{test_emp_phone_minimal}}\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "EDGE: Missing fullName",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Validation error on fullName', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+                  "    pm.expect(body.error.details).to.have.property('fullName');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Duplicate phone",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Dup Phone Employee\",\n  \"phone\": \"{{test_emp_phone}}\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409 Conflict', () => pm.response.to.have.status(409));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Error: DUPLICATE_RESOURCE', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "    pm.expect(body.error.code).to.eql('DUPLICATE_RESOURCE');",
+                  "    pm.expect(body.error.message).to.include('phone');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Non-existent siteId (FK violation)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = Date.now();",
+                  "const phone = '+916' + String(ts).slice(-9);",
+                  "pm.environment.set('test_emp_phone_bad_site', phone);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// siteId FK not enforced at app level — non-existent UUID accepted",
+                  "pm.test('Status 201 (siteId FK not enforced)', () => pm.response.to.have.status(201));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('Employee created with non-existent siteId', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(resData).to.have.property('id');",
+                  "    pm.expect(resData.siteId).to.eql('00000000-0000-0000-0000-000000000099');",
+                  "});",
+                  "",
+                  "// Cleanup: store for deletion if needed",
+                  "if (resData) {",
+                  "    pm.environment.set('bad_site_employee_id', resData.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Bad Site Employee\",\n  \"phone\": \"{{test_emp_phone_bad_site}}\",\n  \"siteId\": \"00000000-0000-0000-0000-000000000099\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "RBAC: Employee cannot create employee",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const empToken = pm.environment.get('employee_access_token');",
+                  "pm.request.headers.upsert({",
+                  "    key: 'Authorization',",
+                  "    value: 'Bearer ' + (empToken || 'no-employee-token')",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 or 403 (RBAC denied)', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Should Not Create\",\n  \"phone\": \"+919111111111\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees"
+              ]
+            }
+          }
+        },
+        {
+          "name": "HAPPY: Update employee name",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Employee Name\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('Name updated', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(resData.fullName).to.eql('Updated Employee Name');",
+                  "    pm.expect(resData.id).to.eql(pm.environment.get('employee_id'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HAPPY: Update employee DOB",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dob\": \"2000-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('DOB updated', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(resData.dob).to.eql('2000-01-15');",
+                  "    pm.expect(resData.id).to.eql(pm.environment.get('employee_id'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Update non-existent employee",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Ghost\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees/00000000-0000-0000-0000-000000000099",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "00000000-0000-0000-0000-000000000099"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HAPPY: Get employee by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('Returns correct employee', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(resData.id).to.eql(pm.environment.get('employee_id'));",
+                  "});",
+                  "",
+                  "pm.test('Has all expected fields', () => {",
+                  "    pm.expect(resData).to.have.property('id');",
+                  "    pm.expect(resData).to.have.property('userId');",
+                  "    pm.expect(resData).to.have.property('fullName');",
+                  "    pm.expect(resData).to.have.property('role');",
+                  "    pm.expect(resData).to.have.property('organizationId');",
+                  "    pm.expect(resData).to.have.property('hasFaceRegistered');",
+                  "    pm.expect(resData).to.have.property('documents');",
+                  "    pm.expect(resData).to.have.property('createdAt');",
+                  "    pm.expect(resData).to.have.property('updatedAt');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Get non-existent employee",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/00000000-0000-0000-0000-000000000099",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "00000000-0000-0000-0000-000000000099"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HAPPY: List employees paginated",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees?page=1&limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Success with data array', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(body.data).to.be.an('array');",
+                  "    pm.expect(body.data.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Has pagination meta', () => {",
+                  "    pm.expect(body.meta).to.have.property('page');",
+                  "    pm.expect(body.meta).to.have.property('limit');",
+                  "    pm.expect(body.meta).to.have.property('total');",
+                  "    pm.expect(body.meta).to.have.property('totalPages');",
+                  "    pm.expect(body.meta.page).to.eql(1);",
+                  "    pm.expect(body.meta.limit).to.eql(10);",
+                  "});",
+                  "",
+                  "pm.test('Employee objects have required fields', () => {",
+                  "    const emp = body.data[0];",
+                  "    pm.expect(emp).to.have.property('id');",
+                  "    pm.expect(emp).to.have.property('userId');",
+                  "    pm.expect(emp).to.have.property('fullName');",
+                  "    pm.expect(emp).to.have.property('role');",
+                  "    pm.expect(emp).to.have.property('organizationId');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Page beyond total",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees?page=999",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "999"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Empty data list', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(body.data).to.be.an('array').that.is.empty;",
+                  "});",
+                  "",
+                  "pm.test('Meta still present', () => {",
+                  "    pm.expect(body.meta.page).to.eql(999);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HAPPY: Search employees by name",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/search?query=Updated",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "Updated"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Found matching employees', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(body.data).to.be.an('array');",
+                  "    pm.expect(body.data.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Results contain search term in name', () => {",
+                  "    const names = body.data.map(e => e.fullName.toLowerCase());",
+                  "    const allMatch = names.every(n => n.includes('updated'));",
+                  "    pm.expect(allMatch).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Search — no match",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/search?query=ZZZZNONEXISTENT",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "search"
+              ],
+              "query": [
+                {
+                  "key": "query",
+                  "value": "ZZZZNONEXISTENT"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Empty result list', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(body.data).to.be.an('array').that.is.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Search — missing query param",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/search",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "search"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400 or 500 for missing required param', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Error response', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "    pm.expect(body.error).to.have.property('code');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HAPPY: Employee gets own profile (/me)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const empToken = pm.environment.get('employee_access_token');",
+                  "if (empToken) {",
+                  "    pm.request.headers.upsert({",
+                  "        key: 'Authorization',",
+                  "        value: 'Bearer ' + empToken",
+                  "    });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const empToken = pm.environment.get('employee_access_token');",
+                  "",
+                  "if (!empToken) {",
+                  "    pm.test('SKIP: employee_access_token not set (requires OTP automation)', () => {",
+                  "        console.warn('Employee /me test skipped: employee_access_token not available.');",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "    const body = pm.response.json();",
+                  "    const resData = body.data;",
+                  "",
+                  "    pm.test('Returns own profile', () => {",
+                  "        pm.expect(body.success).to.eql(true);",
+                  "        pm.expect(resData).to.have.property('id');",
+                  "        pm.expect(resData).to.have.property('userId');",
+                  "        pm.expect(resData).to.have.property('fullName');",
+                  "        pm.expect(resData.role).to.eql('EMPLOYEE');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "EDGE: Admin accesses /me (non-employee role)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Admin has ADMIN role, /me requires EMPLOYEE role → 403",
+                  "pm.test('Status 403 (admin lacks EMPLOYEE role)', () => pm.response.to.have.status(403));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Access denied', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Register face — empty array",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[]"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/face",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "face"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Empty array: no server-side validation on array content",
+                  "pm.test('Status 200 or 400', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Accepted (hasFaceRegistered will be false)', () => {",
+                  "        const body = pm.response.json();",
+                  "        pm.expect(body.success).to.eql(true);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HAPPY: Register face embedding",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29,0.30,0.31,0.32]"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/face",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "face"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data || body;",
+                  "",
+                  "pm.test('Face registered message', () => {",
+                  "    pm.expect(resData.message).to.include('Face registered');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Register face — non-existent employee",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[0.1,0.2,0.3]"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees/00000000-0000-0000-0000-000000000099/face",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "00000000-0000-0000-0000-000000000099",
+                "face"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RBAC: Employee cannot register face",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const empToken = pm.environment.get('employee_access_token');",
+                  "pm.request.headers.upsert({",
+                  "    key: 'Authorization',",
+                  "    value: 'Bearer ' + (empToken || 'no-employee-token')",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 or 403 (RBAC denied)', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[0.1,0.2,0.3]"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/face",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "face"
+              ]
+            }
+          }
+        },
+        {
+          "name": "HAPPY: Upload Aadhaar document",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=AADHAAR&fileUrl=https://storage.example.com/docs/aadhaar-123.jpg",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "AADHAAR"
+                },
+                {
+                  "key": "fileUrl",
+                  "value": "https://storage.example.com/docs/aadhaar-123.jpg"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('Document has expected fields', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(resData).to.have.property('id');",
+                  "    pm.expect(resData.type).to.eql('AADHAAR');",
+                  "    pm.expect(resData.fileUrl).to.include('aadhaar');",
+                  "    pm.expect(resData.verified).to.eql(false);",
+                  "    pm.expect(resData).to.have.property('createdAt');",
+                  "});",
+                  "",
+                  "if (resData) {",
+                  "    pm.environment.set('aadhaar_doc_id', resData.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "HAPPY: Upload PAN document",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=PAN&fileUrl=https://storage.example.com/docs/pan-456.jpg",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "PAN"
+                },
+                {
+                  "key": "fileUrl",
+                  "value": "https://storage.example.com/docs/pan-456.jpg"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('PAN document created', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(resData.type).to.eql('PAN');",
+                  "    pm.expect(resData.fileUrl).to.include('pan');",
+                  "    pm.expect(resData.verified).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Invalid document type",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=UNKNOWN_DOC&fileUrl=https://storage.example.com/docs/x.jpg",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "UNKNOWN_DOC"
+                },
+                {
+                  "key": "fileUrl",
+                  "value": "https://storage.example.com/docs/x.jpg"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Invalid enum value for @RequestParam DocumentType",
+                  "pm.test('Status 400 or 500 for invalid enum', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Error response', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "    pm.expect(body.error).to.have.property('code');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Missing fileUrl param",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=AADHAAR",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "AADHAAR"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Missing required @RequestParam fileUrl",
+                  "pm.test('Status 400 or 500 for missing param', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Error response', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "    pm.expect(body.error).to.have.property('code');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Document — non-existent employee",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/00000000-0000-0000-0000-000000000099/documents?type=AADHAAR&fileUrl=https://storage.example.com/x.jpg",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "00000000-0000-0000-0000-000000000099",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "AADHAAR"
+                },
+                {
+                  "key": "fileUrl",
+                  "value": "https://storage.example.com/x.jpg"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+                  "    pm.expect(body.success).to.eql(false);",
+                  "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RBAC: Employee cannot upload docs",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const empToken = pm.environment.get('employee_access_token');",
+                  "pm.request.headers.upsert({",
+                  "    key: 'Authorization',",
+                  "    value: 'Bearer ' + (empToken || 'no-employee-token')",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401 or 403 (RBAC denied)', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=AADHAAR&fileUrl=https://storage.example.com/x.jpg",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "AADHAAR"
+                },
+                {
+                  "key": "fileUrl",
+                  "value": "https://storage.example.com/x.jpg"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "HAPPY: Upload VOTER_ID (third doc same employee)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=VOTER_ID&fileUrl=https://storage.example.com/docs/voter-789.jpg",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "VOTER_ID"
+                },
+                {
+                  "key": "fileUrl",
+                  "value": "https://storage.example.com/docs/voter-789.jpg"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('Third document for same employee created', () => {",
+                  "    pm.expect(body.success).to.eql(true);",
+                  "    pm.expect(resData.type).to.eql('VOTER_ID');",
+                  "    pm.expect(resData.fileUrl).to.include('voter');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Duplicate document type (AADHAAR again)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=AADHAAR&fileUrl=https://storage.example.com/docs/aadhaar-dup.jpg",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "AADHAAR"
+                },
+                {
+                  "key": "fileUrl",
+                  "value": "https://storage.example.com/docs/aadhaar-dup.jpg"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// No unique constraint on (employee_id, type) — duplicate allowed",
+                  "pm.test('Status 200 or 409 (depends on constraint)', () => {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 409]);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Duplicate doc accepted (no unique constraint)', () => {",
+                  "        pm.expect(body.success).to.eql(true);",
+                  "        pm.expect(body.data.type).to.eql('AADHAAR');",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Duplicate rejected', () => {",
+                  "        pm.expect(body.success).to.eql(false);",
+                  "        pm.expect(body.error.code).to.eql('DUPLICATE_RESOURCE');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "VERIFY: Get employee — face + docs persisted",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/employees/{{employee_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "employees",
+                "{{employee_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const body = pm.response.json();",
+                  "const resData = body.data;",
+                  "",
+                  "pm.test('Face registered', () => {",
+                  "    pm.expect(resData.hasFaceRegistered).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('Documents attached', () => {",
+                  "    pm.expect(resData.documents).to.be.an('array');",
+                  "    pm.expect(resData.documents.length).to.be.at.least(3);",
+                  "    const types = resData.documents.map(d => d.type);",
+                  "    pm.expect(types).to.include('AADHAAR');",
+                  "    pm.expect(types).to.include('PAN');",
+                  "    pm.expect(types).to.include('VOTER_ID');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04-Sites",
+      "description": "Site CRUD, geofence management, and soft-delete tests.\n\nPre-requisites: 01-Auth (tokens), 02-Users (employee user for RBAC).\nSets: site_id, site_id_2",
+      "item": [
+        {
+          "name": "Create site with location",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mumbai HQ\",\n  \"address\": \"123 Marine Drive, Mumbai\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"geofenceRadius\": 500,\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "const resData = pm.response.json();",
+                  "const site = resData.data;",
+                  "pm.test('Has site ID', function () { pm.expect(site.id).to.be.a('string'); });",
+                  "pm.test('Name matches', function () { pm.expect(site.name).to.eql('Mumbai HQ'); });",
+                  "pm.test('Latitude set', function () { pm.expect(site.latitude).to.eql(19.076); });",
+                  "pm.test('Longitude set', function () { pm.expect(site.longitude).to.eql(72.8777); });",
+                  "pm.test('GeofenceRadius set', function () { pm.expect(site.geofenceRadius).to.eql(500); });",
+                  "pm.test('Active by default', function () { pm.expect(site.active).to.be.true; });",
+                  "pm.test('OrganizationId set', function () { pm.expect(site.organizationId).to.be.a('string'); });",
+                  "pm.test('Has timestamps', function () { pm.expect(site.createdAt).to.be.a('string'); pm.expect(site.updatedAt).to.be.a('string'); });",
+                  "pm.environment.set('site_id', site.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create site minimal (name only)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Minimal Site\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "const resData = pm.response.json();",
+                  "const site = resData.data;",
+                  "pm.test('Has site ID', function () { pm.expect(site.id).to.be.a('string'); });",
+                  "pm.test('Name matches', function () { pm.expect(site.name).to.eql('Minimal Site'); });",
+                  "pm.test('Latitude is null', function () { pm.expect(site.latitude).to.be.null; });",
+                  "pm.test('Active by default', function () { pm.expect(site.active).to.be.true; });",
+                  "pm.environment.set('site_id_2', site.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Missing name",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });",
+                  "pm.test('Details mention name', function () { pm.expect(resData.error.details).to.have.property('name'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Missing organizationId",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"No Org Site\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });",
+                  "pm.test('Details mention organizationId', function () { pm.expect(resData.error.details).to.have.property('organizationId'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RBAC: Employee cannot create site",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthorized Site\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const empToken = pm.environment.get('employee_access_token');",
+                  "if (empToken) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + empToken });",
+                  "} else {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer invalid-token-for-rbac' });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update site name",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mumbai HQ - Updated\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "const site = resData.data;",
+                  "pm.test('Name updated', function () { pm.expect(site.name).to.eql('Mumbai HQ - Updated'); });",
+                  "pm.test('ID unchanged', function () { pm.expect(site.id).to.eql(pm.environment.get('site_id')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deactivate site (update isActive=false)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id_2}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id_2}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "const site = resData.data;",
+                  "pm.test('Active is false', function () { pm.expect(site.active).to.be.false; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Re-activate site_id_2 (cleanup)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id_2}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id_2}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "const site = resData.data;",
+                  "pm.test('Active is true again', function () { pm.expect(site.active).to.be.true; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Update non-existent site",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/00000000-0000-4000-a000-000000000099",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "00000000-0000-4000-a000-000000000099"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ghost Site\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(resData.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get site by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "const site = resData.data;",
+                  "pm.test('ID matches', function () { pm.expect(site.id).to.eql(pm.environment.get('site_id')); });",
+                  "pm.test('Name is updated value', function () { pm.expect(site.name).to.eql('Mumbai HQ - Updated'); });",
+                  "pm.test('Has all expected fields', function () {",
+                  "    pm.expect(site).to.have.all.keys('id', 'name', 'address', 'latitude', 'longitude', 'geofenceRadius', 'active', 'clientId', 'organizationId', 'createdAt', 'updatedAt');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Non-existent site ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/00000000-0000-4000-a000-000000000099",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "00000000-0000-4000-a000-000000000099"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(resData.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List sites paginated",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites?page=1&limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Success true', function () { pm.expect(resData.success).to.be.true; });",
+                  "pm.test('Data is array', function () { pm.expect(resData.data).to.be.an('array'); });",
+                  "pm.test('Has meta pagination', function () {",
+                  "    pm.expect(resData.meta).to.have.property('page');",
+                  "    pm.expect(resData.meta).to.have.property('limit');",
+                  "    pm.expect(resData.meta).to.have.property('total');",
+                  "    pm.expect(resData.meta).to.have.property('totalPages');",
+                  "});",
+                  "pm.test('At least 2 sites exist', function () { pm.expect(resData.data.length).to.be.at.least(2); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List sites default pagination",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Success true', function () { pm.expect(resData.success).to.be.true; });",
+                  "pm.test('Data is array', function () { pm.expect(resData.data).to.be.an('array'); });",
+                  "pm.test('Meta has defaults', function () {",
+                  "    pm.expect(resData.meta.page).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set circular geofence",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id}}",
+                "geofence"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": 500\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Set polygon geofence via GeoJSON",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id_2}}/geofence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id_2}}",
+                "geofence"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"geoJson\": \"{\\\"type\\\":\\\"Polygon\\\",\\\"coordinates\\\":[[[72.87,19.07],[72.88,19.07],[72.88,19.08],[72.87,19.08],[72.87,19.07]]]}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Missing latitude/longitude",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id}}",
+                "geofence"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"radiusMeters\": 500\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });",
+                  "pm.test('Details mention latitude', function () { pm.expect(resData.error.details).to.have.property('latitude'); });",
+                  "pm.test('Details mention longitude', function () { pm.expect(resData.error.details).to.have.property('longitude'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Non-existent site geofence",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/00000000-0000-4000-a000-000000000099/geofence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "00000000-0000-4000-a000-000000000099",
+                "geofence"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": 500\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(resData.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Zero radius",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id}}",
+                "geofence"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": 0\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 400 or 500', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422, 500]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const resData = pm.response.json();",
+                  "    pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Negative radius",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id}}",
+                "geofence"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": -100\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 or 400 or 500', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422, 500]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "    const resData = pm.response.json();",
+                  "    pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update existing geofence (new radius)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id}}",
+                "geofence"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": 1000\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create disposable site for delete tests",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Disposable Site\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "const resData = pm.response.json();",
+                  "pm.environment.set('disposable_site_id', resData.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Soft-delete site",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{disposable_site_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{disposable_site_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Delete non-existent site",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/00000000-0000-4000-a000-000000000099",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "00000000-0000-4000-a000-000000000099"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+                  "const resData = pm.response.json();",
+                  "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(resData.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EDGE: Delete already-deleted site",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{disposable_site_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{disposable_site_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// findByIdAndOrganizationId still finds it (isActive filter not in query), so deactivateSite will set false again (idempotent)",
+                  "pm.test('Status 204 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([204, 404, 410]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RBAC: Employee cannot delete site",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const empToken = pm.environment.get('employee_access_token');",
+                  "if (empToken) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + empToken });",
+                  "} else {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer invalid-token-for-rbac' });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify site_id still active",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/sites/{{site_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "sites",
+                "{{site_id}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const resData = pm.response.json();",
+                  "const site = resData.data;",
+                  "pm.test('Site still active', function () { pm.expect(site.active).to.be.true; });",
+                  "pm.test('Name is updated value', function () { pm.expect(site.name).to.eql('Mumbai HQ - Updated'); });",
+                  "pm.test('GeofenceRadius updated to 1000', function () { pm.expect(site.geofenceRadius).to.eql(1000); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

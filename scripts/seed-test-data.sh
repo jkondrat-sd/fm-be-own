@@ -36,6 +36,7 @@ log "Connecting to $DB_HOST:$DB_PORT/$DB_NAME as $DB_USER ..."
 ORG_ID="00000000-0000-4000-a000-000000000001"
 ADMIN_USER_ID="00000000-0000-4000-a000-000000000010"
 EMPLOYEE_USER_ID="00000000-0000-4000-a000-000000000020"
+EMPLOYEE_ID="00000000-0000-4000-a000-000000000021"
 
 PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 <<SQL
 
@@ -57,6 +58,11 @@ INSERT INTO users (id, phone, role, is_active, preferred_lang, organization_id, 
 VALUES ('${EMPLOYEE_USER_ID}', '+919876543210', 'EMPLOYEE', true, 'en', '${ORG_ID}', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
+-- 4. Employee record for the employee user (needed for /v1/employees/me)
+INSERT INTO employees (id, user_id, full_name, organization_id, created_at, updated_at)
+VALUES ('${EMPLOYEE_ID}', '${EMPLOYEE_USER_ID}', 'Test Employee', '${ORG_ID}', NOW(), NOW())
+ON CONFLICT (user_id) DO NOTHING;
+
 SQL
 
 log "Seed data inserted successfully!"
@@ -64,4 +70,5 @@ log ""
 log "  Organization : FM Test Organization (${ORG_ID})"
 log "  Admin User   : admin@fmplatform.com / Admin@123456 (${ADMIN_USER_ID})"
 log "  Employee User: +919876543210 (${EMPLOYEE_USER_ID})"
+log "  Employee Rec : Test Employee (${EMPLOYEE_ID})"
 log ""
