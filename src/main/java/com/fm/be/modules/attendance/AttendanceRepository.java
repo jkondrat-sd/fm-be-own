@@ -92,4 +92,14 @@ public interface AttendanceRepository extends JpaRepository<AttendanceLog, UUID>
      */
     List<AttendanceLog> findBySiteIdAndPunchTimeBetweenOrderByPunchTimeDesc(
             UUID siteId, Instant start, Instant end);
+
+    /**
+     * Counts all attendance punches within a time range.
+     * Used for system-wide dashboard statistics.
+     *
+     * @param start range start
+     * @param end range end
+     * @return total punch count
+     */
+    long countByPunchTimeBetween(Instant start, Instant end);
 }

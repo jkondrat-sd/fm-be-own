@@ -4,9 +4,11 @@ import com.fm.be.common.annotation.CurrentUser;
 import com.fm.be.common.dto.ApiResponse;
 import com.fm.be.common.dto.PageRequestDto;
 import com.fm.be.common.security.UserPrincipal;
+import com.fm.be.modules.admin.AdminService;
 import com.fm.be.modules.users.dto.CreateUserDto;
 import com.fm.be.modules.users.dto.UpdateUserDto;
 import com.fm.be.modules.users.dto.UserResponseDto;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -42,6 +45,7 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final AdminService adminService;
 
     /**
      * Lists all users with pagination.
@@ -72,13 +76,24 @@ public class UserController {
      * Creates a new user.
      *
      * @param dto the user creation data
+     * @param principal the authenticated admin user
+     * @param request the HTTP request (for audit IP logging)
      * @return the created user
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public UserResponseDto createUser(@Valid @RequestBody CreateUserDto dto) {
-        return userService.createUser(dto);
+    public UserResponseDto createUser(
+            @Valid @RequestBody CreateUserDto dto,
+            @CurrentUser UserPrincipal principal,
+            HttpServletRequest request) {
+        UserResponseDto created = userService.createUser(dto);
+        adminService.logAuditEvent(
+                principal.getUserId(), "CREATE_USER", "User",
+                created.getId(),
+                Map.of("role", dto.getRole().name()),
+                request.getRemoteAddr());
+        return created;
     }
 
     /**
@@ -86,24 +101,41 @@ public class UserController {
      *
      * @param id the user UUID
      * @param dto the update data
+     * @param principal the authenticated admin user
+     * @param request the HTTP request (for audit IP logging)
      * @return the updated user
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public UserResponseDto updateUser(@PathVariable UUID id,
-                                      @Valid @RequestBody UpdateUserDto dto) {
-        return userService.updateUser(id, dto);
+    public UserResponseDto updateUser(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserDto dto,
+            @CurrentUser UserPrincipal principal,
+            HttpServletRequest request) {
+        UserResponseDto updated = userService.updateUser(id, dto);
+        adminService.logAuditEvent(
+                principal.getUserId(), "UPDATE_USER", "User",
+                id, null, request.getRemoteAddr());
+        return updated;
     }
 
     /**
      * Deactivates a user (soft delete).
      *
      * @param id the user UUID
+     * @param principal the authenticated admin user
+     * @param request the HTTP request (for audit IP logging)
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public void deactivateUser(@PathVariable UUID id) {
+    public void deactivateUser(
+            @PathVariable UUID id,
+            @CurrentUser UserPrincipal principal,
+            HttpServletRequest request) {
         userService.deactivateUser(id);
+        adminService.logAuditEvent(
+                principal.getUserId(), "DEACTIVATE_USER", "User",
+                id, null, request.getRemoteAddr());
     }
 }

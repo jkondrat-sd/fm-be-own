@@ -1,6 +1,8 @@
 package com.fm.be.common.config;
 
 import com.fm.be.common.interceptor.LoggingInterceptor;
+import com.fm.be.common.interceptor.RateLimitInterceptor;
+import com.fm.be.common.interceptor.TenantInterceptor;
 import com.fm.be.common.security.CurrentUserArgumentResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +21,8 @@ import java.util.List;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final LoggingInterceptor loggingInterceptor;
+    private final RateLimitInterceptor rateLimitInterceptor;
+    private final TenantInterceptor tenantInterceptor;
     private final CurrentUserArgumentResolver currentUserArgumentResolver;
 
     @Override
@@ -26,6 +30,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(loggingInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**");
+
+        registry.addInterceptor(rateLimitInterceptor)
+                .addPathPatterns("/v1/**")
+                .excludePathPatterns("/v1/health/**", "/v1/auth/**");
+
+        registry.addInterceptor(tenantInterceptor)
+                .addPathPatterns("/v1/**")
+                .excludePathPatterns("/v1/health/**", "/v1/auth/**");
     }
 
     @Override
