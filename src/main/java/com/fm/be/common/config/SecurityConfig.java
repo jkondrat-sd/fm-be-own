@@ -1,5 +1,6 @@
 package com.fm.be.common.config;
 
+import com.fm.be.common.filter.RequestTraceFilter;
 import com.fm.be.common.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 /**
  * Spring Security configuration for JWT-based stateless authentication.
@@ -30,6 +32,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RequestTraceFilter requestTraceFilter;
     private final CorsConfigurationSource corsConfigurationSource;
 
     /**
@@ -63,6 +66,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(requestTraceFilter, CorsFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class);
 

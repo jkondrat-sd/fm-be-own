@@ -1,625 +1,799 @@
-# PLANNING.md — fm-be Backend Service
+# PLANNING.md — fm-be API Integration Testing & Local Infrastructure
 
-> **Last Updated**: 2026-04-02  
-> **Status**: Active — V1 Development  
-> **Source of Truth**: All architectural decisions derive from `context/PLANNING.md` and `context/BACKEND_CONTEXT.md`.
-
----
-
-## 1. Project Overview
-
-The `fm-be` service is the **central backend API** for the Facility Management Platform. It is the sole data gateway for all clients — **Flutter Mobile App** (field employees), **Web Portal** (Admin / Ops / Payroll / Super Admin), and **Client Portal** (read-only attendance reports). No client connects directly to the database, Redis, or object storage.
-
-### Key Capabilities (V1)
-| Capability | Module |
-|---|---|
-| OTP + Email/Password auth, JWT issue/refresh | `auth` |
-| Employee onboarding, document management, face registration | `employees` |
-| Geofence-based attendance punch with facial verification | `attendance` |
-| Live location ingestion, heatmap aggregation, geofence alerts | `location` |
-| Site CRUD, geofence polygon management | `sites` |
-| Shift scheduling, employee assignment | `shifts` |
-| Field site status reporting with media attachments | `siteupdates` |
-| Indian statutory payroll (PF, ESIC, TDS, PT), bank files | `payroll` |
-| FCM push, email, SMS notifications | `notifications` |
-| Presigned URL media upload, thumbnail generation | `media` |
-| User/role management, audit logs, config, data export | `admin` |
-| Data retention cleanup, heatmap aggregation | Scheduler jobs |
-
-### Scale Target
-- **1,000–3,000 active users at launch** (field employees)
-- **100 req/s sustained** (location updates every 30s from all users)
-- **< 200ms p95** response time for hot-path endpoints
+> **Last Updated**: 2026-04-03  
+> **Status**: Active — API Testing Phase  
+> **Iteration**: Post V1 Development — Local Deploy + Integration Testing  
+> **Predecessor**: `itr/v1/PLANNING.md` (V1 codebase development — complete, 94% unit test coverage)
 
 ---
 
-## 2. Tech Stack
+## 1. Overview
 
-```
-Java 17 LTS / Spring Boot 3.4.0
-├── Maven                          — Build & dependency management
-├── Spring Boot Starter Web        — REST controllers, JSON serialization
-├── Spring Data JPA + Hibernate    — ORM, JPA repositories
-├── Hibernate Spatial              — PostGIS geospatial queries
-├── Jakarta Bean Validation        — DTO validation (@NotNull, @Size, etc.)
-├── Spring Security + JWT          — Authentication & authorization
-├── Spring Scheduler + @Async      — Background jobs (payroll, cleanup, heatmap)
-├── Spring Data Redis (Lettuce)    — Caching, live location, rate limiting
-├── Flyway                         — Database migration management
-├── Lombok                         — Boilerplate reduction (@Data, @Builder, etc.)
-├── Springdoc OpenAPI (swagger)    — Auto-generated API documentation
-├── Thumbnailator                  — Image resizing/thumbnail generation
-├── AWS SDK v2 (S3-compatible)     — Presigned URL generation for R2/S3
-├── Firebase Admin SDK             — FCM push notification delivery
-├── SLF4J + Logback                — Structured JSON logging with MDC
-├── JaCoCo                         — Code coverage reporting (target: 85%+)
-├── JUnit 5 + Mockito              — Unit testing
-├── Spring Boot Test + MockMvc     — Integration testing
-└── Testcontainers                 — E2E testing with real PostgreSQL + Redis
-```
+All V1 endpoint development and unit testing (85%+ coverage) is complete. This iteration focuses on:
 
-### External Dependencies
-| Dependency | Purpose |
-|---|---|
-| PostgreSQL 16 + PostGIS 3.4 | Primary data store with geospatial support |
-| Redis 7 | Caching, live location, rate limiting counters |
-| Cloudflare R2 / AWS S3 | Object storage for images, videos, documents |
-| Firebase Cloud Messaging | Push notifications to mobile devices |
-| SMTP / SMS Gateway | OTP delivery, payroll notifications |
-| MinIO (dev only) | Local S3-compatible storage for development |
+1. **Local server infrastructure** — shell scripts to deploy DB, Redis, MinIO and spin up the Java server locally
+2. **API integration testing** — Postman-style collection with Newman CLI for automated endpoint testing
+3. **Comprehensive test plan** — happy path + edge cases for every endpoint, with data setup specifications
+4. **Reusable collection** — serves as API contract for FE, Android, and Client Portal AI agent development
+
+### Scope
+
+| Area | Status |
+|------|--------|
+| V1 Code (13 controllers, 63 endpoints, 12 modules) | ✅ Complete |
+| Unit Tests (94% coverage, 85%+ per module) | ✅ Complete |
+| Local Infra Scripts | ✅ Complete |
+| Postman Environment + Collection Skeleton | ✅ Complete |
+| Test Plan (268 test cases) | ✅ Complete |
+| Postman Collection — Full Suite Implementation | ⬜ In Progress |
 
 ---
 
-## 3. Package Structure
+## 2. Local Development Infrastructure
 
-```
-src/main/java/com/fm/be/
-├── FmBackendApplication.java              # @SpringBootApplication entry point
-│
-├── common/                                # Cross-cutting shared code
-│   ├── config/                            # Configuration classes
-│   │   ├── SecurityConfig.java            # Spring Security filter chain, JWT
-│   │   ├── RedisConfig.java               # Redis connection & template config
-│   │   ├── AsyncConfig.java               # @Async thread pool config
-│   │   ├── CorsConfig.java               # CORS policy for web/mobile origins
-│   │   ├── OpenApiConfig.java            # Swagger/OpenAPI setup
-│   │   └── JacksonConfig.java            # ObjectMapper customizations (ISO 8601)
-│   ├── security/                          # Auth infrastructure
-│   │   ├── JwtTokenProvider.java          # Token generation & validation
-│   │   ├── JwtAuthenticationFilter.java   # OncePerRequestFilter for JWT
-│   │   └── UserPrincipal.java            # Spring Security principal
-│   ├── dto/                               # Shared DTOs
-│   │   ├── ApiResponse.java              # Standard response envelope
-│   │   ├── ApiError.java                 # Error details DTO
-│   │   ├── PaginationMeta.java           # Page metadata
-│   │   └── PageRequestDto.java           # Common pagination request
-│   ├── exception/                         # Exception handling
-│   │   ├── GlobalExceptionHandler.java    # @ControllerAdvice
-│   │   ├── ResourceNotFoundException.java
-│   │   ├── DuplicateResourceException.java
-│   │   ├── BusinessRuleException.java     # Domain-specific errors
-│   │   └── RateLimitExceededException.java
-│   ├── interceptor/                       # Request interceptors
-│   │   ├── ResponseEnvelopeAdvice.java    # Auto-wraps responses in ApiResponse
-│   │   ├── LoggingInterceptor.java        # MDC correlation ID, request timing
-│   │   ├── RateLimitInterceptor.java      # Redis-backed rate limiting
-│   │   └── TenantInterceptor.java         # Multi-tenancy org filter injection
-│   ├── annotation/                        # Custom annotations
-│   │   ├── CurrentUser.java              # Extract authenticated user
-│   │   └── ApiPaginated.java            # Mark paginated endpoints
-│   ├── constants/                         # Enums and constants
-│   │   ├── Role.java                     # EMPLOYEE, SUPERVISOR, ADMIN, SUPER_ADMIN, CLIENT
-│   │   ├── ErrorCode.java               # All error codes from PLANNING.md
-│   │   ├── PunchType.java               # IN, OUT
-│   │   ├── PayrollStatus.java           # DRAFT > PROCESSING > PENDING_APPROVAL > APPROVED/REJECTED > DISBURSED
-│   │   └── DocumentType.java           # AADHAAR, PAN, RATION_CARD, etc.
-│   └── util/                             # Shared utilities
-│       ├── DateTimeUtil.java             # IST timezone helpers
-│       └── EncryptionUtil.java           # pgcrypto field encryption
-│
-├── modules/                              # Feature modules (vertical slices)
-│   ├── auth/                             # Authentication & authorization
-│   │   ├── AuthController.java
-│   │   ├── AuthService.java
-│   │   ├── dto/
-│   │   │   ├── OtpRequestDto.java
-│   │   │   ├── OtpVerifyDto.java
-│   │   │   ├── LoginRequestDto.java
-│   │   │   ├── LoginResponseDto.java
-│   │   │   └── TokenRefreshDto.java
-│   │   └── entity/
-│   │       └── RefreshToken.java
-│   │
-│   ├── users/                            # User CRUD, role management
-│   │   ├── UserController.java
-│   │   ├── UserService.java
-│   │   ├── UserRepository.java
-│   │   ├── dto/
-│   │   └── entity/
-│   │       └── User.java
-│   │
-│   ├── employees/                        # Employee profiles & onboarding
-│   │   ├── EmployeeController.java
-│   │   ├── EmployeeService.java
-│   │   ├── EmployeeRepository.java
-│   │   ├── dto/
-│   │   └── entity/
-│   │       ├── Employee.java
-│   │       └── EmployeeDocument.java
-│   │
-│   ├── sites/                            # Site CRUD & geofence management
-│   │   ├── SiteController.java
-│   │   ├── SiteService.java
-│   │   ├── SiteRepository.java
-│   │   ├── dto/
-│   │   └── entity/
-│   │       └── Site.java
-│   │
-│   ├── attendance/                       # Punch in/out & attendance reports
-│   │   ├── AttendanceController.java
-│   │   ├── AttendanceService.java
-│   │   ├── AttendanceRepository.java
-│   │   ├── dto/
-│   │   └── entity/
-│   │       └── AttendanceLog.java
-│   │
-│   ├── location/                         # Live location & heatmap
-│   │   ├── LocationController.java
-│   │   ├── LocationService.java
-│   │   ├── LocationRepository.java
-│   │   ├── dto/
-│   │   └── entity/
-│   │       └── LocationHistory.java
-│   │
-│   ├── shifts/                           # Shift scheduling & assignment
-│   │   ├── ShiftController.java
-│   │   ├── ShiftService.java
-│   │   ├── ShiftRepository.java
-│   │   ├── dto/
-│   │   └── entity/
-│   │       ├── Shift.java
-│   │       └── ShiftAssignment.java
-│   │
-│   ├── siteupdates/                      # Field site status reports
-│   │   ├── SiteUpdateController.java
-│   │   ├── SiteUpdateService.java
-│   │   ├── SiteUpdateRepository.java
-│   │   ├── dto/
-│   │   └── entity/
-│   │       └── SiteUpdate.java
-│   │
-│   ├── payroll/                          # Payroll engine (PF, ESIC, TDS, PT)
-│   │   ├── PayrollController.java
-│   │   ├── PayrollService.java
-│   │   ├── PayrollCalculationService.java  # PF/ESIC/TDS/PT computation
-│   │   ├── PayrollRepository.java
-│   │   ├── dto/
-│   │   └── entity/
-│   │       ├── SalaryStructure.java
-│   │       ├── PayrollRun.java
-│   │       └── Payslip.java
-│   │
-│   ├── notifications/                    # FCM push, SMS, email
-│   │   ├── NotificationController.java
-│   │   ├── NotificationService.java
-│   │   ├── FcmService.java
-│   │   ├── dto/
-│   │   └── entity/
-│   │       └── DeviceToken.java
-│   │
-│   ├── media/                            # Presigned URL generation & thumbnails
-│   │   ├── MediaController.java
-│   │   ├── MediaService.java
-│   │   └── dto/
-│   │
-│   └── admin/                            # Super admin operations
-│       ├── AdminController.java
-│       ├── AdminService.java
-│       ├── AuditLogRepository.java
-│       ├── dto/
-│       └── entity/
-│           ├── AuditLog.java
-│           └── Organization.java
-│
-├── scheduler/                            # Background scheduled jobs
-│   ├── PayrollJobScheduler.java          # @Async payroll processing
-│   ├── HeatmapAggregationJob.java        # Daily 3 AM IST
-│   ├── RetentionCleanupJob.java          # Daily 2 AM IST (location + media)
-│   ├── ThumbnailProcessorJob.java        # @Async on upload
-│   ├── ShiftReminderJob.java             # 30 min before shift
-│   └── GeofenceAlertJob.java             # Real-time geofence violation check
-│
-src/main/resources/
-├── application.yml                       # Main config (shared)
-├── application-dev.yml                   # Dev profile overrides
-├── application-prod.yml                  # Production profile overrides
-└── db/migration/                         # Flyway SQL migration files
-    ├── V1__init_extensions.sql           # PostGIS, pgcrypto, uuid-ossp
-    ├── V2__create_organizations.sql
-    ├── V3__create_users.sql
-    ├── V4__create_clients.sql
-    ├── V5__create_sites.sql
-    ├── V6__create_employees.sql
-    ├── V7__create_attendance.sql
-    ├── V8__create_location.sql
-    ├── V9__create_shifts.sql
-    ├── V10__create_site_updates.sql
-    ├── V11__create_payroll.sql
-    ├── V12__create_notifications.sql
-    ├── V13__create_audit_logs.sql
-    ├── V14__create_refresh_tokens.sql
-    └── V15__create_indexes.sql
+### 2.1 Prerequisites
 
-src/test/java/com/fm/be/
-├── unit/                                 # Unit tests per module
-│   ├── auth/
-│   ├── users/
-│   ├── employees/
-│   ├── sites/
-│   ├── attendance/
-│   ├── location/
-│   ├── shifts/
-│   ├── siteupdates/
-│   ├── payroll/
-│   ├── notifications/
-│   ├── media/
-│   └── admin/
-├── integration/                          # MockMvc endpoint tests
-│   ├── auth/
-│   ├── attendance/
-│   ├── payroll/
-│   └── ...
-└── e2e/                                  # Testcontainers full-flow tests
-    ├── AuthFlowE2ETest.java
-    ├── AttendancePunchE2ETest.java
-    └── PayrollRunE2ETest.java
+- **Docker + Docker Compose** — for PostgreSQL+PostGIS, Redis, MinIO
+- **Java 17** — JDK for compilation and runtime
+- **Maven 3.9+** — build tool (wrapper generated by setup script)
+- **Node.js 18+** — for Newman (Postman CLI test runner)
+- **curl + jq** — for health checks and API testing scripts
+
+### 2.2 Dev Scripts (`scripts/`)
+
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `setup-dev.sh` | One-time setup: install Docker, Maven wrapper, Newman, create `.env.dev` | `./scripts/setup-dev.sh` |
+| `start-infra.sh` | Start PostgreSQL+PostGIS, Redis, MinIO containers; wait for healthy | `./scripts/start-infra.sh` |
+| `start-server.sh` | Source `.env.dev`, run `mvn spring-boot:run -Pdev` | `./scripts/start-server.sh` |
+| `stop-all.sh` | Stop Java server + all Docker containers | `./scripts/stop-all.sh` |
+| `health-check.sh` | Verify all services are running and healthy | `./scripts/health-check.sh` |
+| `reset-db.sh` | Drop and recreate database (destructive!) | `./scripts/reset-db.sh` |
+| `run-api-tests.sh` | Execute Postman collection via Newman | `./scripts/run-api-tests.sh` |
+
+### 2.3 Quick Start
+
+```bash
+# 1. One-time setup
+./scripts/setup-dev.sh
+
+# 2. Start infrastructure
+./scripts/start-infra.sh
+
+# 3. Start server
+./scripts/start-server.sh
+
+# 4. Verify everything
+./scripts/health-check.sh
+
+# 5. Run API tests
+./scripts/run-api-tests.sh
 ```
 
----
+### 2.4 Docker Compose Services
 
-## 4. Coding Conventions
-
-### 4.1 Naming
-| Context | Convention | Example |
-|---|---|---|
-| Java packages | lowercase dot-separated | `com.fm.be.modules.attendance` |
-| Java classes | PascalCase | `AttendanceService`, `PayrollController` |
-| Java methods | camelCase | `validateGeofence()`, `processPayroll()` |
-| Constants / Enums | SCREAMING_SNAKE | `GEOFENCE_VIOLATION`, `SUPER_ADMIN` |
-| Database tables | snake_case, plural | `attendance_logs`, `payroll_runs` |
-| Database columns | snake_case | `punch_time`, `is_active` |
-| API endpoints | kebab-case, plural nouns | `/v1/site-updates`, `/v1/attendance/logs` |
-| JSON response fields | camelCase | `punchInTime`, `isActive`, `faceMatchScore` |
-| Env variables | SCREAMING_SNAKE | `DATABASE_URL`, `JWT_SECRET` |
-| Git branches | `type/short-desc` | `feat/attendance-punch`, `fix/payroll-rounding` |
-
-### 4.2 Code Style Rules
-- **No file > 500 lines**. If approaching, extract into helper classes or sub-services.
-- **Every public method** has a Javadoc comment explaining purpose and parameters.
-- **Non-obvious logic** has inline comments explaining _why_, not just _what_.
-- **DTOs** use Jakarta Validation annotations (`@NotNull`, `@Size`, `@Email`, etc.).
-- **Entities** use Lombok `@Data`, `@Builder`, `@NoArgsConstructor`, `@AllArgsConstructor`.
-- **Services** are `@Service` + `@RequiredArgsConstructor` (constructor injection via Lombok).
-- **Controllers** are thin — delegate all logic to services.
-- **Repositories** extend `JpaRepository<Entity, UUID>`.
-
-### 4.3 API Design Patterns
-
-#### Response Envelope (ALL endpoints)
-```json
-{
-  "success": true,
-  "data": { ... },
-  "meta": { "page": 1, "limit": 20, "total": 150 },
-  "error": null
-}
-```
-
-#### Error Envelope
-```json
-{
-  "success": false,
-  "data": null,
-  "error": {
-    "code": "GEOFENCE_VIOLATION",
-    "message": "Employee is outside designated site boundary",
-    "details": { "distance_meters": 150 }
-  }
-}
-```
-
-#### Error Codes (shared with all FE clients)
-| Code | HTTP | When |
-|---|---|---|
-| `AUTH_TOKEN_EXPIRED` | 401 | JWT expired, trigger refresh |
-| `AUTH_UNAUTHORIZED` | 403 | Insufficient role/permission |
-| `GEOFENCE_VIOLATION` | 422 | Punch outside site boundary |
-| `FACE_MISMATCH` | 422 | Facial recognition failed |
-| `SHIFT_NOT_STARTED` | 422 | Too early/late for punch |
-| `DUPLICATE_PUNCH` | 409 | Idempotent punch already exists |
-| `PAYROLL_LOCKED` | 423 | Payroll period locked |
-| `SITE_INACTIVE` | 410 | Site deactivated |
-| `RATE_LIMITED` | 429 | Too many requests |
-| `VALIDATION_ERROR` | 400 | DTO validation failed |
-| `SERVER_ERROR` | 500 | Generic server error |
-
-#### Pagination
-- **Offset-based** for admin data tables (employees, sites, users, audit logs).
-- **Cursor-based** for high-volume data (attendance logs, location history).
-
-#### Timestamps
-- Always **ISO 8601 with timezone**: `2026-03-30T10:30:00+05:30`
-- Stored as `timestamptz` in PostgreSQL and `Instant` in Java.
-
-#### IDs
-- **UUID v4** for all entities. Never expose sequential IDs.
+| Service | Image | Ports | Credentials |
+|---------|-------|-------|-------------|
+| PostgreSQL+PostGIS | `postgis/postgis:16-3.4-alpine` | `5432` | `user` / `password` / `fm_db` |
+| Redis | `redis:7-alpine` | `6379` | no password (dev) |
+| MinIO (S3) | `minio/minio:latest` | `9000` (API), `9001` (Console) | `minioadmin` / `minioadmin` |
+| MinIO Init | `minio/mc:latest` | — | Creates `fm-media` bucket |
 
 ---
 
-## 5. Database Design
+## 3. API Integration Testing Plan
 
-### 5.1 Key Entities (Logical Schema)
+### 3.1 Testing Infrastructure
+
+**Tool**: Postman Collections + Newman CLI runner  
+**Location**: `tests/postman/`  
+**Environment**: `fm-be-dev.postman_environment.json`  
+**Collection**: `fm-be-api-tests.postman_collection.json`  
+**Reports**: `tests/postman/reports/` (git-ignored)
+
+### 3.2 Test Suite Execution Order
+
+Suites must execute sequentially — each suite depends on data created by prior suites.
 
 ```
-organizations     → id (UUID PK), name, createdAt, updatedAt
-users             → id (UUID PK), phone?, email?, passwordHash?, role, isActive, preferredLang, organizationId (FK)
-employees         → id (UUID PK), userId (FK unique), fullName, dob?, aadhaarEncrypted?, panEncrypted?, faceEmbedding (float[]), siteId? (FK), organizationId (FK)
-sites             → id (UUID PK), name, address?, geofenceRadius?, latitude?, longitude?, geofence (geography Polygon 4326)?, isActive, clientId? (FK), organizationId (FK)
-clients           → id (UUID PK), name, contactEmail?, contactPhone?, organizationId (FK)
-attendance_logs   → id (UUID PK), employeeId (FK), punchType (IN/OUT), punchTime (timestamptz), lat, lng, accuracy?, faceMatchScore?, isInsideGeofence, deviceInfo (JSONB), siteId (FK)
-location_history  → id (UUID PK), employeeId (FK), lat, lng, accuracy?, battery?, signal?, airplaneMode, recordedAt (timestamptz)
-site_updates      → id (UUID PK), employeeId (FK), siteId (FK), text?, mediaUrls (text[]), recordedAt (timestamptz)
-shifts            → id (UUID PK), siteId (FK), name, startTime (time), endTime (time), isActive
-shift_assignments → id (UUID PK), employeeId (FK), shiftId (FK), date (date), UNIQUE(employeeId, date)
-employee_documents → id (UUID PK), employeeId (FK), type (DocumentType), fileUrl, isVerified, verifiedBy?, verifiedAt?
-salary_structures → id (UUID PK), employeeId (FK unique), basic, hra, conveyance?, special?, grossSalary, pfEmployee, pfEmployer, esicEmployee?, esicEmployer?, ptAmount?
-payroll_runs      → id (UUID PK), month, year, status (PayrollStatus), processedBy?, approvedBy?, bankFileUrl?, totalGross?, totalNet?, totalPf?, totalEsic?, totalTds?, organizationId (FK), UNIQUE(month, year, organizationId)
-payslips          → id (UUID PK), payrollRunId (FK), employeeId (FK), daysWorked, daysAbsent, grossEarnings, pfDeduction, esicDeduction?, tdsDeduction?, ptDeduction?, otherDeductions?, netPayable
-audit_logs        → id (UUID PK), userId (FK), action, targetEntity, targetId, metadata (JSONB), ipAddress?, createdAt
-refresh_tokens    → id (UUID PK), userId (FK), token (unique), expiresAt, deviceInfo?
+00-Smoke       → Health check, OpenAPI docs
+01-Auth        → Login, get tokens (admin + employee)
+02-Users       → CRUD users (creates employee user for later)
+03-Employees   → Onboard employees, register face, upload docs
+04-Sites       → Create sites + set geofences
+05-Shifts      → Create shifts, assign employees
+06-Attendance  → Punch in/out, reports
+07-Location    → Location updates, live view, heatmap
+08-SiteUpdates → Create field reports
+09-Payroll     → Salary structure, payroll run lifecycle
+10-Notifications → Send, list, mark read
+11-Media       → Presigned URL, confirm upload
+12-Admin       → Audit logs, dashboard stats, export, config
+99-Cleanup     → Teardown test data
 ```
 
-### 5.2 Multi-Tenancy
-- **Strategy**: Single database, `organizationId` column on all tenant-scoped tables.
-- **Enforcement**: `TenantInterceptor` injects `organizationId` from JWT into all queries.
-- **Safety net**: PostgreSQL Row-Level Security (RLS) policies as an additional guard.
+### 3.3 Data Setup Dependencies
 
-### 5.3 Migrations
-- **Tool**: Flyway (SQL-based migrations)
-- Naming: `V{n}__{description}.sql` (double underscore)
-- Hibernate `ddl-auto` set to `validate` in production (never `update` or `create`).
-
-### 5.4 Critical Indexes
-```sql
--- Spatial index for geofence containment checks
-CREATE INDEX idx_sites_geofence ON sites USING GIST (geofence);
-
--- Location history spatial + temporal
-CREATE INDEX idx_location_history_coords ON location_history 
-  USING GIST (ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography);
-CREATE INDEX idx_location_history_recorded ON location_history (recorded_at DESC);
-
--- Attendance fast lookups
-CREATE INDEX idx_attendance_employee_time ON attendance_logs (employee_id, punch_time DESC);
-
--- Partial index for active sites only
-CREATE INDEX idx_active_sites ON sites (id) WHERE is_active = true;
+```
+Organization (seeded in DB or created via admin)
+  └─ Admin User (email/password login → admin_access_token)
+  └─ Employee User (OTP or created via admin → employee_access_token)
+       └─ Employee Profile (POST /employees)
+            └─ Face Registration (POST /employees/{id}/face)
+            └─ Documents (POST /employees/{id}/documents)
+            └─ Salary Structure (POST /payroll/salary-structure)
+  └─ Site (POST /sites)
+       └─ Geofence (PUT /sites/{id}/geofence)
+       └─ Shift (POST /shifts)
+            └─ Shift Assignment (POST /shifts/assign)
+       └─ Attendance Logs (POST /attendance/punch)
+       └─ Location Updates (POST /location/update)
+       └─ Site Updates (POST /site-updates)
+  └─ Payroll Run (POST /payroll/run)
+  └─ Notifications (POST /notifications/send)
 ```
 
----
+### 3.4 Environment Variables (auto-populated during test run)
 
-## 6. Cross-Cutting Concerns
+| Variable | Set By Suite | Used By |
+|----------|-------------|---------|
+| `access_token` | 01-Auth | All authenticated requests |
+| `admin_access_token` | 01-Auth | Admin/SuperAdmin endpoints |
+| `employee_access_token` | 01-Auth | Employee endpoints |
+| `organization_id` | 01-Auth | Multi-tenant scoped requests |
+| `admin_user_id` | 01-Auth | User references |
+| `employee_user_id` | 02-Users | Employee creation |
+| `employee_id` | 03-Employees | Attendance, shifts, payroll |
+| `site_id` | 04-Sites | Attendance, shifts, location |
+| `shift_id` | 05-Shifts | Shift assignment |
+| `payroll_run_id` | 09-Payroll | Payroll lifecycle |
+| `notification_id` | 10-Notifications | Mark read |
+| `media_file_key` | 11-Media | Confirm upload |
 
-### 6.1 Authentication & Authorization
-- **Mobile**: OTP login → JWT (access 15min + refresh 30d)
-- **Web Portal**: Email/password → JWT (access 15min + refresh 7d via httpOnly cookie)
-- **Client Portal**: Email/password → JWT (access 15min only)
-- **JWT payload**: `{ sub: userId, role: Role, siteIds: [], iat, exp }`
-- **Guards**: `@PreAuthorize` / `@Secured` on controller methods, matched to `Role` enum.
-- **Filter**: `JwtAuthenticationFilter` (extends `OncePerRequestFilter`) validates token on every request.
+### 3.5 Test Assertions Standard
 
-### 6.2 Caching (Redis)
-| Key Pattern | Data | TTL | Invalidation |
-|---|---|---|---|
-| `loc:{employeeId}` | Live location + device info | 120s | Overwritten every 30s by mobile |
-| `profile:{employeeId}` | Employee profile snapshot | 10 min | Invalidate on profile update |
-| `shift:{employeeId}:{date}` | Today's shift assignment | 1 hour | Invalidate on reassignment |
-| `site:{siteId}:geofence` | Geofence polygon/radius | 30 min | Invalidate on geofence edit |
-| `report:attendance:{siteId}:{date}` | Daily attendance summary | 5 min | Short TTL, auto-expires |
-
-### 6.3 Rate Limiting (Redis-backed)
-| Endpoint | Limit |
-|---|---|
-| `POST /v1/auth/otp/request` | 5 req/min per phone |
-| `POST /v1/location/update` | 1 req/10s per user |
-| `POST /v1/attendance/punch` | 1 req/min per user (business logic + dedup) |
-| All other endpoints | 100 req/min per user |
-
-### 6.4 Logging
-- **Format**: Structured JSON via Logback + SLF4J
-- **Correlation ID**: UUID v4 generated per request, stored in MDC, included in every log line.
-- **Fields**: `timestamp`, `level`, `correlationId`, `module`, `action`, `userId`, `duration_ms`, `metadata`
-- **Access logging on PII queries** (Aadhaar, PAN) via `LoggingInterceptor`.
-
-### 6.5 Auditing
-- All admin write operations logged in `audit_logs` table.
-- Fields: `userId`, `action`, `targetEntity`, `targetId`, `metadata` (JSONB), `ipAddress`, `createdAt`.
-
-### 6.6 Data Retention
-- **Location history**: 30-day rolling retention (daily 2 AM IST cleanup job).
-- **Site update media**: 30 days, then purged from R2/S3.
-- **Payroll data**: Retained indefinitely (legal requirement).
-- **Aggregated heatmap data**: Retained 1 year.
+Every test validates:
+1. **HTTP status code** — exact expected code (200, 201, 204, 400, 401, 403, 404, 409, 422, 429)
+2. **Response envelope** — `success`, `data`, `error` structure
+3. **Data integrity** — created entity has all expected fields with correct types
+4. **Idempotency** — where applicable, repeated requests produce same result
+5. **RBAC** — wrong role returns 403
+6. **Validation** — missing/invalid fields return 400 with `VALIDATION_ERROR`
 
 ---
 
-## 7. Background Jobs
+## 4. Comprehensive Endpoint Test Cases
 
-| Job | Trigger | Schedule | Description |
-|---|---|---|---|
-| `processPayroll` | @Async (on-demand) | Via API call | Full payroll computation for a month |
-| `generateBankFile` | @Async (on-demand) | After payroll approval | CSV/Excel for bank disbursement |
-| `cleanupLocationData` | @Scheduled | Daily 2:00 AM IST | Delete `location_history` > 30 days |
-| `cleanupMedia` | @Scheduled | Daily 2:30 AM IST | Delete expired media from R2/S3 |
-| `aggregateHeatmap` | @Scheduled | Daily 3:00 AM IST | Aggregate location data into heatmap view |
-| `generateThumbnail` | @Async (on upload) | On file upload confirm | Resize images, extract video frames |
-| `sendShiftReminder` | @Scheduled | Every minute (check 30min window) | FCM notification for upcoming shifts |
-| `checkGeofence` | @Async (triggered) | On location update | Alert when employee exits geofence >5 min |
+### 4.1 Suite 00: Smoke Tests
+
+#### `GET /v1/health`
+| # | Type | Test Case | Expected |
+|---|------|-----------|----------|
+| 1 | Happy | Health check returns status | 200, `status: "UP"`, database + redis services present |
+| 2 | Happy | OpenAPI docs available | 200, has `openapi` and `paths` keys |
 
 ---
 
-## 8. Indian Statutory Payroll Compliance
+### 4.2 Suite 01: Auth (5 endpoints, ~20 tests)
 
-### 8.1 Provident Fund (PF)
-- Employee: 12% of Basic + DA (capped at ₹15,000 base)
-- Employer: 12% of Basic + DA (3.67% EPF + 8.33% EPS)
-- Generate PF ECR file monthly for EPFO portal
+#### `POST /v1/auth/otp/request`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Request OTP for valid phone | `phone: "+919876543210"` | 200, message "OTP sent" |
+| 2 | Edge | Empty phone | `phone: ""` | 400 VALIDATION_ERROR |
+| 3 | Edge | Invalid phone format | `phone: "abc123"` | 400 VALIDATION_ERROR |
+| 4 | Edge | Missing phone field | `{}` | 400 VALIDATION_ERROR |
+| 5 | Edge | Rate limit exceeded (6th request within 1 min) | 6 rapid requests | 429 RATE_LIMITED |
 
-### 8.2 ESIC (Employee State Insurance)
-- Applicable if Gross ≤ ₹21,000/month
-- Employee: 0.75% of Gross
-- Employer: 3.25% of Gross
-- Re-evaluate eligibility every April and October
+#### `POST /v1/auth/otp/verify`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 6 | Happy | Verify correct OTP | Valid phone + OTP from Redis | 200, accessToken + refreshToken + userId + role |
+| 7 | Edge | Wrong OTP code | Valid phone + `otp: "000000"` | 401 or 400 |
+| 8 | Edge | Expired OTP (>5 min) | OTP older than TTL | 401 OTP_EXPIRED |
+| 9 | Edge | OTP for non-existent phone | Phone not in OTP store | 401 |
 
-### 8.3 TDS (Tax Deducted at Source)
-- **Old regime slabs** (default, configurable):
-  - ₹0–₹2,50,000: Nil
-  - ₹2,50,001–₹5,00,000: 5%
-  - ₹5,00,001–₹10,00,000: 20%
-  - Above ₹10,00,000: 30%
-- Monthly TDS = Estimated annual tax / 12
-- **Store TDS slabs as configuration, NOT hardcoded** (change annually).
+#### `POST /v1/auth/login`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 10 | Happy | Admin login with valid credentials | Seeded admin user | 200, tokens + userId + role=ADMIN |
+| 11 | Edge | Wrong password | Valid email, wrong password | 401 |
+| 12 | Edge | Non-existent email | `email: "nobody@test.com"` | 401 |
+| 13 | Edge | Empty body | `{}` | 400 VALIDATION_ERROR |
+| 14 | Edge | Invalid email format | `email: "notanemail"` | 400 VALIDATION_ERROR |
+| 15 | Edge | Inactive user login | User with `isActive=false` | 401 or 403 |
 
-### 8.4 Professional Tax (PT) — Maharashtra V1
-- Gross ≤ ₹7,500: Nil
-- ₹7,501–₹10,000: ₹175/month
-- Above ₹10,000: ₹200/month (₹300 in February)
-- **Store PT rules as configurable per-state data**.
+#### `POST /v1/auth/refresh`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 16 | Happy | Refresh with valid token | refreshToken from login | 200, new accessToken |
+| 17 | Edge | Invalid refresh token | `refreshToken: "garbage"` | 401 |
+| 18 | Edge | Empty refresh token | `refreshToken: ""` | 400 VALIDATION_ERROR |
 
-> **Critical**: All tax rates, thresholds, and slabs MUST be stored in database configuration tables, never hardcoded. They change annually/biannually.
-
----
-
-## 9. Performance Targets
-
-| Endpoint | Target (p95) | Strategy |
-|---|---|---|
-| `POST /v1/attendance/punch` | < 500ms | GiST spatial index on geofence |
-| `POST /v1/location/update` | < 100ms | Redis write only; DB async batch |
-| `GET /v1/location/live` | < 200ms | Pure Redis read |
-| `GET /v1/attendance/report` | < 1s | Indexed queries, materialized views |
-| `POST /v1/payroll/run` | < 500ms | Returns immediately, @Async processing |
-| `GET /v1/payroll/run/:id/status` | < 50ms | Simple DB read |
-
-### Location Ingestion Strategy
-1. **Every request**: Write to Redis only (fast path, <100ms)
-2. **Every 5 minutes**: `@Scheduled` job flushes Redis → PostgreSQL batch insert (~3,000 rows)
-3. **Geofence check**: Runs on every update using PostGIS `ST_DWithin()` query
+#### `POST /v1/auth/logout`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 19 | Happy | Logout deletes refresh token | Valid refreshToken | 200, message "Logged out" |
+| 20 | Edge | Logout with already-deleted token | Re-use token after logout | 401 or 400 |
 
 ---
 
-## 10. Testing Strategy
+### 4.3 Suite 02: Users (5 endpoints, ~22 tests)
 
-### Coverage Target: **80%+ on services and modules**
+**Pre-requisite**: Admin logged in with `admin_access_token`.
 
-| Layer | Tool | Coverage Target |
-|---|---|---|
-| **Unit Tests** | JUnit 5 + Mockito | 80%+ on `Service` classes |
-| **Integration Tests** | Spring Boot Test + MockMvc | All endpoints tested |
-| **E2E Tests** | Testcontainers (PostgreSQL + Redis) | Critical flows: auth, punch, payroll |
-| **Coverage Reporting** | JaCoCo | Enforced via Maven plugin, fail build if < 80% |
+#### `POST /v1/admin/users`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Create user with phone | `{ phone, role: EMPLOYEE, organizationId }` | 201, userId returned |
+| 2 | Happy | Create user with email + password | `{ email, password, role: ADMIN, organizationId }` | 201 |
+| 3 | Edge | Duplicate email | Same email as existing user | 409 DUPLICATE_RESOURCE |
+| 4 | Edge | Duplicate phone | Same phone as existing user | 409 DUPLICATE_RESOURCE |
+| 5 | Edge | Missing organizationId | Omit required field | 400 VALIDATION_ERROR |
+| 6 | Edge | Invalid role value | `role: "HACKER"` | 400 |
+| 7 | RBAC | Employee role tries to create user | employee_access_token | 403 AUTH_UNAUTHORIZED |
 
-### Testing Conventions
-- Test directory mirrors main source: `src/test/java/com/fm/be/unit/{module}/`
-- Each service class has a corresponding `{Service}Test.java`.
-- Each controller has a corresponding `{Controller}IntegrationTest.java`.
-- Tests cover: happy path, edge cases, validation errors, authorization failures, concurrency scenarios.
-- Payroll tests include explicit assertions against Indian statutory compliance rules.
+#### `GET /v1/admin/users`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 8 | Happy | List users with default pagination | — | 200, paginated list, meta present |
+| 9 | Happy | List with custom page/limit | `?page=1&limit=5` | 200, limit=5 in response |
+| 10 | Edge | Page beyond total | `?page=999` | 200, empty data list |
+| 11 | RBAC | Employee cannot list users | employee_access_token | 403 |
 
----
+#### `GET /v1/admin/users/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 12 | Happy | Get user by ID | Valid user UUID | 200, user details |
+| 13 | Edge | Non-existent UUID | Random UUID | 404 RESOURCE_NOT_FOUND |
+| 14 | Edge | Invalid UUID format | `id: "not-a-uuid"` | 400 |
 
-## 11. Security Checklist
+#### `PUT /v1/admin/users/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 15 | Happy | Update user role | `{ role: SUPERVISOR }` | 200, role updated |
+| 16 | Happy | Deactivate user | `{ isActive: false }` | 200, isActive=false |
+| 17 | Edge | Update non-existent user | Random UUID | 404 |
+| 18 | Edge | Update with duplicate email | Email of another user | 409 |
 
-- [ ] All API calls over HTTPS (enforced by NGINX)
-- [ ] JWT validated on every request via `JwtAuthenticationFilter`
-- [ ] Role-based `@PreAuthorize` on every endpoint
-- [ ] Jakarta Bean Validation on every DTO
-- [ ] JPA parameterized queries (no SQL injection)
-- [ ] Rate limiting on auth + location endpoints
-- [ ] PII (Aadhaar, PAN) encrypted at rest via pgcrypto
-- [ ] Audit log for all admin write operations
-- [ ] Presigned URLs expire in 15 minutes
-- [ ] No secrets in code — all via environment variables
-- [ ] Correlation IDs in all logs for traceability
-- [ ] CORS restricted to known origins
-
----
-
-## 12. Development Phases
-
-### Phase 1: Foundation (Week 1–2)
-> Setup, backend foundation, DB schema, auth, common infrastructure
-- Project bootstrap, dependency setup, Flyway migrations
-- Common: ApiResponse, GlobalExceptionHandler, logging, CORS, security config
-- Auth module (OTP + email/password login, JWT, refresh tokens)
-- Health endpoint enhancement
-- Users module (CRUD, role management)
-
-### Phase 2: Core Modules (Week 3–5)
-> Android-critical endpoints first — attendance, location, sites, shifts
-- Employees module (profiles, onboarding, documents, face registration)
-- Sites module (CRUD, geofence polygon management with PostGIS)
-- Attendance module (punch in/out with geofence + face verification, reports)
-- Location module (live location ingestion, Redis strategy, heatmap queries)
-- Shifts module (scheduling, assignment, mobile task view data)
-- Site Updates module (text + media reports)
-
-### Phase 3: Advanced Modules (Week 5–7)
-> Payroll engine, notifications, media
-- Payroll module (salary structures, payroll run with @Async, PF/ESIC/TDS/PT)
-- Bank file generation (CSV/Excel)
-- Notifications module (FCM push, device token management)
-- Media module (presigned URL flow, thumbnail generation)
-
-### Phase 4: Ops & Admin (Week 7–8)
-> Dashboard data, admin panel, background jobs
-- Admin module (user management, audit logs, system config, data export)
-- Ops dashboard endpoints (live tracking, alerts, device audit)
-- All scheduled jobs (cleanup, heatmap aggregation, shift reminders)
-- Rate limiting interceptor
-
-### Phase 5: Polish & Hardening (Week 9–10)
-> Testing, performance, security
-- 85%+ test coverage across all modules
-- Performance testing and optimization
-- Security audit and hardening
-- API documentation (Springdoc OpenAPI)
-- Production configuration and deployment preparation
+#### `DELETE /v1/admin/users/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 19 | Happy | Delete user | Valid user UUID | 204 No Content |
+| 20 | Edge | Delete non-existent user | Random UUID | 404 |
+| 21 | Edge | Delete self | Own user ID | 400 or 422 (business rule) |
+| 22 | RBAC | Employee cannot delete | employee_access_token | 403 |
 
 ---
 
-## 13. V2 Extensibility
+### 4.4 Suite 03: Employees (8 endpoints, ~30 tests)
 
-Design all schemas and APIs to accommodate future requirements:
+#### `POST /v1/employees`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Create employee with all fields | `{ fullName, phone, email, dob, siteId, organizationId }` | 201, employee with userId linked |
+| 2 | Happy | Create employee minimal fields | `{ fullName, organizationId }` only | 201 |
+| 3 | Edge | Missing fullName | Omit required field | 400 VALIDATION_ERROR |
+| 4 | Edge | Duplicate phone (same as existing user) | Phone already in users table | 409 |
+| 5 | Edge | Non-existent siteId | Random UUID for siteId | 404 |
+| 6 | RBAC | Employee cannot create employee | employee_access_token | 403 |
 
-| Future Feature | Design Decision Now |
-|---|---|
-| iOS App | API is platform-agnostic; no Android-specific assumptions |
-| Visitor Management | `sites` supports `siteType` enum extensibility |
-| Complaint/Ticket System | Employee + Site models are referenceable by future tables |
-| WebSocket live tracking | Redis pub/sub infrastructure in place |
-| Multi-tenant | `organizationId` on all tables from V1 |
-| Separate biometrics | Face embedding storage designed for future extraction |
+#### `PUT /v1/employees/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 7 | Happy | Update employee name | `{ fullName: "New Name" }` | 200, name updated |
+| 8 | Happy | Reassign to different site | `{ siteId: site_id_2 }` | 200, siteId updated |
+| 9 | Edge | Update non-existent employee | Random UUID | 404 |
+
+#### `GET /v1/employees/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 10 | Happy | Get employee by ID | Valid employee UUID | 200, full profile |
+| 11 | Edge | Non-existent ID | Random UUID | 404 |
+
+#### `GET /v1/employees`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 12 | Happy | List employees paginated | `?page=1&limit=10` | 200, list + meta |
+| 13 | Edge | Empty result | Org with no employees | 200, empty list |
+
+#### `GET /v1/employees/search`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 14 | Happy | Search by name | `?query=John` | 200, matching employees |
+| 15 | Edge | No match | `?query=ZZZZZ` | 200, empty list |
+| 16 | Edge | Missing query param | No `query` | 400 |
+
+#### `GET /v1/employees/me`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 17 | Happy | Employee gets own profile | employee_access_token | 200, own profile |
+| 18 | Edge | Non-employee user | admin_access_token (no employee record) | 404 or 403 |
+
+#### `POST /v1/employees/{id}/face`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 19 | Happy | Register face embedding | `[0.1, 0.2, ... 128 floats]` | 200, "Face registered" |
+| 20 | Edge | Empty array | `[]` | 400 |
+| 21 | Edge | Non-existent employee | Random UUID | 404 |
+| 22 | RBAC | Employee cannot register face | employee_access_token | 403 |
+
+#### `POST /v1/employees/{id}/documents`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 23 | Happy | Upload Aadhaar document | `type=AADHAAR&fileUrl=https://...` | 200, document record |
+| 24 | Happy | Upload PAN document | `type=PAN&fileUrl=https://...` | 200 |
+| 25 | Edge | Invalid document type | `type=UNKNOWN` | 400 |
+| 26 | Edge | Missing fileUrl | No fileUrl param | 400 |
+| 27 | Edge | Non-existent employee | Random UUID | 404 |
+| 28 | RBAC | Employee cannot upload docs | employee_access_token | 403 |
+| 29 | Happy | Multiple docs for same employee | Upload both AADHAAR + PAN | 200 for each |
+| 30 | Edge | Duplicate document type | Same type again | 409 or 200 (replace) |
 
 ---
 
-## 14. References
+### 4.5 Suite 04: Sites (6 endpoints, ~24 tests)
 
-- [Master Planning Document](context/PLANNING.md)
-- [Backend Context](context/BACKEND_CONTEXT.md)
-- [Mobile Context](context/MOBILE_CONTEXT.md) — understand FE contract expectations
-- [Web Portal Context](context/WEB_PORTAL_CONTEXT.md) — understand dashboard/payroll FE needs
-- [Client Portal Context](context/CLIENT_PORTAL_CONTEXT.md) — read-only reporting needs
+#### `POST /v1/sites`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Create site with location | `{ name, address, latitude, longitude, geofenceRadius, organizationId }` | 201, site with ID |
+| 2 | Happy | Create site minimal (name only) | `{ name, organizationId }` | 201 |
+| 3 | Edge | Missing name | Omit required field | 400 |
+| 4 | Edge | Missing organizationId | Omit required | 400 |
+| 5 | RBAC | Employee cannot create site | employee_access_token | 403 |
+
+#### `PUT /v1/sites/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 6 | Happy | Update site name | `{ name: "Updated Site" }` | 200, name changed |
+| 7 | Happy | Deactivate site | `{ isActive: false }` | 200, isActive=false |
+| 8 | Edge | Update non-existent site | Random UUID | 404 |
+
+#### `GET /v1/sites/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 9 | Happy | Get site by ID | Valid UUID | 200, full site details |
+| 10 | Edge | Non-existent ID | Random UUID | 404 |
+
+#### `GET /v1/sites`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 11 | Happy | List sites paginated | `?page=1&limit=10` | 200, list + meta |
+| 12 | Happy | Default pagination | No params | 200, default page=1 limit=20 |
+
+#### `PUT /v1/sites/{id}/geofence`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 13 | Happy | Set circular geofence | `{ latitude: 19.076, longitude: 72.877, radiusMeters: 500 }` | 200, geofence updated |
+| 14 | Happy | Set polygon geofence via GeoJSON | `{ geoJson: "{...polygon...}" }` | 200 |
+| 15 | Edge | Missing latitude/longitude | Omit required fields | 400 |
+| 16 | Edge | Non-existent site | Random UUID | 404 |
+| 17 | Edge | Zero radius | `radiusMeters: 0` | 400 or 422 |
+| 18 | Edge | Negative radius | `radiusMeters: -100` | 400 |
+| 19 | Happy | Update existing geofence | Change radius on same site | 200, geofence overwritten |
+
+#### `DELETE /v1/sites/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 20 | Happy | Soft-delete site | Valid site UUID | 204 |
+| 21 | Edge | Delete non-existent site | Random UUID | 404 |
+| 22 | Edge | Delete already-deleted site | Previously deleted site | 404 or 410 |
+| 23 | RBAC | Supervisor cannot delete | supervisor token | 403 |
+| 24 | Edge | Delete site with active employees | Site with assigned employees | 422 or 204 (soft delete ok) |
+
+---
+
+### 4.6 Suite 05: Shifts (5 endpoints, ~22 tests)
+
+#### `POST /v1/shifts`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Create day shift | `{ siteId, name: "Day Shift", startTime: "09:00", endTime: "18:00" }` | 201, shift created |
+| 2 | Happy | Create night shift | `{ siteId, name: "Night Shift", startTime: "22:00", endTime: "06:00" }` | 201 |
+| 3 | Edge | Missing siteId | Omit required field | 400 |
+| 4 | Edge | Missing name | `name: ""` | 400 |
+| 5 | Edge | Non-existent site | Random UUID | 404 |
+| 6 | RBAC | Employee cannot create shift | employee_access_token | 403 |
+
+#### `PUT /v1/shifts/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 7 | Happy | Update shift time | `{ startTime: "08:00" }` | 200, time updated |
+| 8 | Happy | Deactivate shift | `{ isActive: false }` | 200 |
+| 9 | Edge | Non-existent shift | Random UUID | 404 |
+
+#### `GET /v1/shifts/site/{siteId}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 10 | Happy | List shifts for site | Valid siteId | 200, shift list |
+| 11 | Edge | Site with no shifts | New site | 200, empty list |
+
+#### `POST /v1/shifts/assign`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 12 | Happy | Assign employee to shift | `{ employeeId, shiftId, date: "2026-04-04" }` | 201, assignment created |
+| 13 | Edge | Duplicate assignment (same employee+date) | Same assignment again | 409 DUPLICATE_RESOURCE |
+| 14 | Edge | Non-existent employee | Random UUID | 404 |
+| 15 | Edge | Non-existent shift | Random UUID | 404 |
+| 16 | Edge | Past date assignment | `date: "2020-01-01"` | 400 or 201 (accepted) |
+| 17 | RBAC | Employee cannot assign | employee_access_token | 403 |
+
+#### `GET /v1/shifts/schedule`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 18 | Happy | Employee views own schedule | employee_access_token + date range | 200, assignments list |
+| 19 | Happy | Admin views employee schedule | admin_access_token + `employeeId` param | 200, assignments |
+| 20 | Edge | No assignments in date range | Far future dates | 200, empty list |
+| 21 | Edge | Missing date range | No startDate/endDate | 400 |
+| 22 | Edge | Invalid date format | `startDate: "not-a-date"` | 400 |
+
+---
+
+### 4.7 Suite 06: Attendance (5 endpoints, ~28 tests)
+
+**Critical flow**: This is the core mobile feature.
+
+#### `POST /v1/attendance/punch`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Punch IN inside geofence | `{ punchType: IN, lat/lng inside site geofence, faceMatchScore: 0.92 }` | 201, insideGeofence=true |
+| 2 | Happy | Punch OUT inside geofence | `{ punchType: OUT, ... }` | 201 |
+| 3 | Happy | Punch without face (optional) | Omit faceImageUrl and faceMatchScore | 201 |
+| 4 | Edge | Punch OUTSIDE geofence | lat/lng far from site (outside_latitude/longitude) | 422 GEOFENCE_VIOLATION |
+| 5 | Edge | Face match score too low | `faceMatchScore: 0.5` | 422 FACE_MISMATCH |
+| 6 | Edge | Duplicate punch within 5 min | Same punch type within 5 minutes | 409 DUPLICATE_PUNCH |
+| 7 | Edge | Punch at inactive site | Site with isActive=false | 410 SITE_INACTIVE |
+| 8 | Edge | Employee with no site assignment | Employee not assigned to any site | 422 |
+| 9 | Edge | Missing punchType | Omit required field | 400 VALIDATION_ERROR |
+| 10 | Edge | Missing coordinates | Omit latitude/longitude | 400 |
+| 11 | Edge | Invalid punchType | `punchType: "BREAK"` | 400 |
+| 12 | RBAC | Admin cannot punch | admin_access_token | 403 |
+| 13 | Edge | No auth token | Omit Authorization header | 401 |
+
+#### `GET /v1/attendance/today`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 14 | Happy | Get today's punches | After punch in/out | 200, list with 2 entries (IN + OUT) |
+| 15 | Edge | No punches today | New employee, no punches | 200, empty list |
+| 16 | RBAC | Admin cannot use this endpoint | admin_access_token | 403 |
+
+#### `GET /v1/attendance/logs`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 17 | Happy | Get logs with date range | `?start=...&end=...` | 200, paginated logs |
+| 18 | Happy | Filter by siteId | `?siteId=...&start=...&end=...` | 200, filtered logs |
+| 19 | Happy | Filter by employeeId | `?employeeId=...&start=...&end=...` | 200, filtered logs |
+| 20 | Edge | Missing date range | No start/end | 400 |
+| 21 | Edge | Start after end | `start > end` | 400 or empty |
+| 22 | RBAC | Employee cannot view logs | employee_access_token | 403 |
+
+#### `GET /v1/attendance/report`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 23 | Happy | Site attendance report | `?siteId=...&start=...&end=...` | 200, report with totals |
+| 24 | Edge | Site with no attendance | New site, no punches | 200, zeroes |
+| 25 | Edge | Non-existent siteId | Random UUID | 404 or 200 with zeroes |
+
+#### `GET /v1/attendance/site/{siteId}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 26 | Happy | Today's site attendance | Valid siteId with punches | 200, attendance list |
+| 27 | Edge | Non-existent site | Random UUID | 404 or empty list |
+| 28 | RBAC | Employee cannot view | employee_access_token | 403 |
+
+---
+
+### 4.8 Suite 07: Location (4 endpoints, ~20 tests)
+
+#### `POST /v1/location/update`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Update location with all fields | `{ latitude, longitude, accuracy, battery: 85, signal: 4, airplaneMode: false }` | 200, `status: "ok"` |
+| 2 | Happy | Minimal update (coords only) | `{ latitude, longitude }` | 200 |
+| 3 | Edge | Missing latitude | Omit required field | 400 |
+| 4 | Edge | Missing longitude | Omit required field | 400 |
+| 5 | Edge | Rate limit (2nd request within 10s) | Rapid-fire 2 requests | 429 RATE_LIMITED |
+| 6 | RBAC | Admin cannot update location | admin_access_token | 403 |
+| 7 | Edge | Airplane mode true | `airplaneMode: true` | 200 (still accepted) |
+
+#### `GET /v1/location/live/{siteId}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 8 | Happy | Live locations for site | After location update | 200, list with employee locations |
+| 9 | Edge | No active employees | Site with no recent locations | 200, empty list |
+| 10 | Edge | Non-existent site | Random UUID | 200 empty or 404 |
+| 11 | RBAC | Employee cannot view live | employee_access_token | 403 |
+
+#### `GET /v1/location/heatmap/{siteId}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 12 | Happy | Heatmap with date range | `?start=...&end=...` | 200, heatmap points |
+| 13 | Edge | No data in range | Far past dates | 200, empty points |
+| 14 | Edge | Missing date range | No start/end | 400 |
+| 15 | RBAC | Supervisor cannot view heatmap | supervisor token | 403 |
+
+#### `GET /v1/location/alerts`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 16 | Happy | No active alerts | Normal operation | 200, empty or list |
+| 17 | Happy | Alert for employee outside geofence | Employee outside >5 min | 200, alert with details |
+| 18 | Edge | Multiple alerts | Multiple employees outside | 200, list |
+| 19 | RBAC | Employee cannot view alerts | employee_access_token | 403 |
+| 20 | Happy | Alert clears after employee returns | Employee moves back inside | 200, alert removed |
+
+---
+
+### 4.9 Suite 08: Site Updates (3 endpoints, ~14 tests)
+
+#### `POST /v1/site-updates`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Create text-only update | `{ siteId, text: "All clear" }` | 201, update created |
+| 2 | Happy | Create with text + media | `{ siteId, text: "Progress", mediaUrls: ["url1", "url2"] }` | 201 |
+| 3 | Happy | Create with media only | `{ siteId, mediaUrls: ["url1"] }` | 201 |
+| 4 | Edge | Missing siteId | Omit required field | 400 |
+| 5 | Edge | Too many media (>6) | 7 URLs in mediaUrls | 400 |
+| 6 | Edge | Empty text and empty media | `{ siteId }` | 400 or 201 |
+| 7 | RBAC | Admin cannot create update | admin_access_token | 403 |
+
+#### `GET /v1/site-updates/site/{siteId}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 8 | Happy | List updates for site | Valid siteId with updates | 200, paginated list |
+| 9 | Edge | No updates | New site | 200, empty list |
+| 10 | RBAC | Employee cannot list | employee_access_token | 403 |
+
+#### `GET /v1/site-updates/{id}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 11 | Happy | Get update by ID | Valid update UUID | 200, full update |
+| 12 | Edge | Non-existent ID | Random UUID | 404 |
+| 13 | RBAC | Employee cannot view | employee_access_token | 403 |
+| 14 | Happy | Verify media URLs preserved | Update with media | 200, mediaUrls array intact |
+
+---
+
+### 4.10 Suite 09: Payroll (9 endpoints, ~35 tests)
+
+#### `POST /v1/payroll/salary-structure`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Create salary structure | `{ employeeId, basic: 25000, hra: 10000 }` | 201, grossSalary calculated, PF/ESIC/PT computed |
+| 2 | Happy | With all allowances | `{ ..., conveyance: 1600, special: 3000 }` | 201, all fields populated |
+| 3 | Edge | Duplicate for same employee | Same employeeId again | 409 |
+| 4 | Edge | Non-existent employee | Random UUID | 404 |
+| 5 | Edge | Negative basic | `basic: -5000` | 400 |
+| 6 | Edge | Zero basic | `basic: 0` | 400 |
+| 7 | RBAC | Employee cannot create | employee_access_token | 403 |
+
+#### `GET /v1/payroll/salary-structure/{employeeId}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 8 | Happy | Get salary structure | Valid employeeId | 200, full structure with computed deductions |
+| 9 | Edge | No structure for employee | Employee without salary | 404 |
+
+#### `PUT /v1/payroll/salary-structure/{employeeId}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 10 | Happy | Update salary (raise) | `{ basic: 30000, hra: 12000 }` | 200, recalculated deductions |
+| 11 | Happy | Verify PF recalculated | After raise above 15K cap | 200, PF capped correctly |
+
+#### `POST /v1/payroll/run`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 12 | Happy | Initiate payroll run | `?month=4&year=2026` | 201, status=DRAFT or PROCESSING |
+| 13 | Edge | Duplicate month/year/org | Same month+year again | 409 |
+| 14 | Edge | Invalid month | `month=13` | 400 |
+| 15 | Edge | Future month | month far in future | 400 or 201 |
+| 16 | RBAC | Employee cannot run payroll | employee_access_token | 403 |
+
+#### `GET /v1/payroll/run/{id}/status`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 17 | Happy | Check run status | Valid payroll run ID | 200, current status |
+| 18 | Happy | Poll until PENDING_APPROVAL | Repeated polling | 200, status transitions |
+| 19 | Edge | Non-existent run ID | Random UUID | 404 |
+
+#### `POST /v1/payroll/run/{id}/approve`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 20 | Happy | Approve payroll run | Run in PENDING_APPROVAL | 200, status=APPROVED |
+| 21 | Edge | Approve already-approved run | Run in APPROVED | 422 or 400 |
+| 22 | Edge | Approve run in DRAFT | Wrong status | 422 |
+| 23 | Edge | Non-existent run | Random UUID | 404 |
+
+#### `POST /v1/payroll/run/{id}/reject`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 24 | Happy | Reject payroll run | Run in PENDING_APPROVAL | 200, status=REJECTED |
+| 25 | Edge | Reject already-approved run | Wrong status | 422 |
+
+#### `GET /v1/payroll/runs`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 26 | Happy | List all payroll runs | — | 200, paginated list |
+| 27 | Edge | Empty list for new org | Org with no runs | 200, empty |
+
+#### `GET /v1/payroll/run/{id}/payslips`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 28 | Happy | Get payslips for run | Approved run | 200, payslip list |
+| 29 | Happy | Verify statutory deductions | Check PF, ESIC, TDS, PT values | 200, correct amounts |
+| 30 | Happy | Verify net payable | grossEarnings - all deductions | 200, math checks out |
+| 31 | Edge | Payslips for DRAFT run | Run not processed yet | 200, empty list |
+| 32 | Edge | Non-existent run | Random UUID | 404 |
+| 33 | Happy | PF capped at 15K base | Employee with basic > 15K | PF calculated on 15K only |
+| 34 | Happy | ESIC applied if gross <= 21K | Low-salary employee | ESIC fields populated |
+| 35 | Happy | ESIC NOT applied if gross > 21K | High-salary employee | ESIC = 0 |
+
+---
+
+### 4.11 Suite 10: Notifications (4 endpoints, ~16 tests)
+
+#### `POST /v1/notifications/send`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Send notification | `{ userId, title: "Test", body: "Hello" }` | 201, notification created |
+| 2 | Happy | Send with metadata | `{ ..., type: "ALERT", metadata: { key: "value" } }` | 201 |
+| 3 | Edge | Missing userId | Omit required field | 400 |
+| 4 | Edge | Missing title | Omit required field | 400 |
+| 5 | Edge | Non-existent userId | Random UUID | 201 (notification saved but no FCM delivery) |
+| 6 | RBAC | Employee cannot send | employee_access_token | 403 |
+
+#### `GET /v1/notifications`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 7 | Happy | List notifications | After send | 200, paginated, has unreadCount |
+| 8 | Happy | Unread count is correct | 2 unread notifications | unreadCount = 2 |
+| 9 | Edge | Empty notifications | New user | 200, empty list, unreadCount=0 |
+
+#### `PUT /v1/notifications/{id}/read`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 10 | Happy | Mark as read | Valid notification ID | 200, read=true |
+| 11 | Happy | Unread count decrements | After marking read | unreadCount decremented |
+| 12 | Edge | Already read notification | Mark read again | 200 (idempotent) |
+| 13 | Edge | Non-existent notification | Random UUID | 404 |
+
+#### `POST /v1/notifications/register-device`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 14 | Happy | Register FCM token | `{ fcmToken: "token123" }` | 204 |
+| 15 | Happy | Re-register same token | Same token again | 204 (idempotent) |
+| 16 | Edge | Missing fcmToken | `{}` | 400 |
+
+---
+
+### 4.12 Suite 11: Media (2 endpoints, ~12 tests)
+
+#### `POST /v1/media/presigned-url`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | Request presigned URL for image | `{ fileName: "photo.jpg", contentType: "image/jpeg", fileSize: 2000000 }` | 201, uploadUrl + fileKey + cdnUrl |
+| 2 | Happy | Request for video | `{ fileName: "clip.mp4", contentType: "video/mp4", fileSize: 30000000 }` | 201 |
+| 3 | Happy | Request for document | `{ fileName: "doc.pdf", contentType: "application/pdf", fileSize: 5000000 }` | 201 |
+| 4 | Edge | Unsupported file type | `contentType: "application/exe"` | 400 |
+| 5 | Edge | Image too large (>5MB) | `fileSize: 10000000, contentType: "image/jpeg"` | 400 |
+| 6 | Edge | Video too large (>50MB) | `fileSize: 60000000, contentType: "video/mp4"` | 400 |
+| 7 | Edge | Missing fileName | Omit required field | 400 |
+| 8 | Edge | Missing contentType | Omit required field | 400 |
+| 9 | Edge | No auth | Omit Authorization | 401 |
+
+#### `POST /v1/media/confirm`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 10 | Happy | Confirm image upload | `{ fileKey: "..." }` from presigned URL | 200, cdnUrl + thumbnailUrl |
+| 11 | Edge | Non-existent fileKey | `{ fileKey: "fake/key" }` | 200 or 404 |
+| 12 | Edge | Missing fileKey | `{}` | 400 |
+
+---
+
+### 4.13 Suite 12: Admin (5 endpoints, ~20 tests)
+
+#### `GET /v1/admin/audit-logs`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 1 | Happy | List all audit logs | — | 200, paginated list |
+| 2 | Happy | Filter by userId | `?userId=...` | 200, filtered logs |
+| 3 | Happy | Filter by action | `?action=CREATE_USER` | 200, filtered |
+| 4 | Edge | No matching logs | `?userId=<random UUID>` | 200, empty list |
+| 5 | RBAC | Admin cannot view audit logs | admin_access_token (non-SUPER_ADMIN) | 403 |
+
+#### `GET /v1/admin/dashboard/stats`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 6 | Happy | Get dashboard stats | After data creation | 200, all stat fields present |
+| 7 | Happy | Verify counts are correct | Cross-reference with created data | Counts match |
+| 8 | RBAC | Employee cannot view stats | employee_access_token | 403 |
+
+#### `POST /v1/admin/export/{entity}`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 9 | Happy | Export users CSV | `entity=users` | 200, Content-Type octet-stream, has CSV headers |
+| 10 | Happy | Export employees CSV | `entity=employees` | 200, CSV data |
+| 11 | Happy | Export sites CSV | `entity=sites` | 200, CSV data |
+| 12 | Edge | Unknown entity | `entity=foobar` | 400 |
+| 13 | RBAC | Employee cannot export | employee_access_token | 403 |
+
+#### `GET /v1/admin/config`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 14 | Happy | Get system config | — | 200, config map |
+| 15 | RBAC | Admin cannot view config | admin_access_token (non-SUPER_ADMIN) | 403 |
+
+#### `PUT /v1/admin/config`
+| # | Type | Test Case | Data Setup | Expected |
+|---|------|-----------|------------|----------|
+| 16 | Happy | Update config value | `{ config: { "key": "value" } }` | 200, updated config |
+| 17 | Happy | Verify config persists | GET after PUT | 200, value matches |
+| 18 | RBAC | Admin cannot update config | admin_access_token | 403 |
+| 19 | Edge | Empty config object | `{ config: {} }` | 200 or 400 |
+| 20 | RBAC | Employee cannot access | employee_access_token | 403 |
+
+---
+
+### 4.14 Suite 99: Cleanup
+
+| # | Test Case | Action | Expected |
+|---|-----------|--------|----------|
+| 1 | Logout admin | POST /v1/auth/logout | 200 |
+| 2 | Logout employee | POST /v1/auth/logout | 200 |
+| 3 | Verify tokens invalidated | Use old access_token on protected endpoint | 401 |
+
+---
+
+## 5. Test Metrics Summary
+
+| Suite | Endpoints | Happy Path | Edge Cases | RBAC | Total |
+|-------|-----------|------------|------------|------|-------|
+| 00-Smoke | 2 | 2 | 0 | 0 | **2** |
+| 01-Auth | 5 | 5 | 15 | 0 | **20** |
+| 02-Users | 5 | 5 | 10 | 7 | **22** |
+| 03-Employees | 8 | 8 | 14 | 8 | **30** |
+| 04-Sites | 6 | 7 | 11 | 6 | **24** |
+| 05-Shifts | 5 | 5 | 10 | 7 | **22** |
+| 06-Attendance | 5 | 5 | 16 | 7 | **28** |
+| 07-Location | 4 | 5 | 9 | 6 | **20** |
+| 08-SiteUpdates | 3 | 4 | 6 | 4 | **14** |
+| 09-Payroll | 9 | 12 | 16 | 7 | **35** |
+| 10-Notifications | 4 | 5 | 7 | 4 | **16** |
+| 11-Media | 2 | 4 | 6 | 2 | **12** |
+| 12-Admin | 5 | 6 | 6 | 8 | **20** |
+| 99-Cleanup | — | 2 | 1 | 0 | **3** |
+| **TOTAL** | **63** | **75** | **127** | **66** | **268** |
+
+---
+
+## 6. Agent Spawning Strategy for Collection Creation
+
+Each TASK in `TASK.md` (TASK-3.x through TASK-3.15) maps to one Postman suite. Agents should:
+
+1. Read `PLANNING.md` for the exact test cases and expected responses
+2. Read the corresponding controller + DTO source files for precise request/response shapes
+3. Add requests to `tests/postman/fm-be-api-tests.postman_collection.json`
+4. Include pre-request scripts for token management and environment variable capture
+5. Include test assertions matching the standard defined in §3.5
+
+### Parallel vs Sequential
+
+- **Collection writing** can be parallelized (agents write to separate JSON files per suite)
+- **Collection execution** (Newman) must be sequential (data dependencies between suites)
+- Final step: merge all suite JSONs into one collection
+
+### Reuse for FE / Android / Client Portal Agents
+
+The completed collection serves as:
+- **API contract** — exact request/response shapes for every endpoint
+- **Integration test harness** — verifiable expected behaviors
+- **Data setup reference** — entity creation order and dependencies
+- **Error catalog** — all error codes with triggering conditions
+
+---
+
+## 7. References
+
+- [V1 Backend Planning](itr/v1/PLANNING.md) — architecture, DB schema, coding conventions
+- [V1 Backend Tasks](itr/v1/TASK.md) — development task history
+- [Backend Context](context/BACKEND_CONTEXT.md) — endpoint specifications
 - [Infrastructure Context](context/INFRASTRUCTURE_CONTEXT.md) — deployment architecture
-- [FM Overview](context/FM-OVERVIEW.md) — V1 scope table
-- [FM Detailed](context/FM-DETAILED.md) — detailed scope of work

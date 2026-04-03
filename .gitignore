@@ -47,10 +47,14 @@ Thumbs.db
 
 # Local Environment
 .env
+.env.dev
 .env.local
 .env.*.local
 application-local.yml
 application-local.properties
+
+# API Test Reports
+tests/postman/reports/
 
 # Log files
 logs/

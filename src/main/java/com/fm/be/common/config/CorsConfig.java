@@ -45,7 +45,7 @@ public class CorsConfig {
         config.setAllowedHeaders(List.of(allowedHeaders));
         config.setAllowCredentials(allowCredentials);
         config.setMaxAge(maxAge);
-        config.setExposedHeaders(List.of("X-Correlation-Id"));
+        config.setExposedHeaders(List.of("X-Correlation-Id", "X-Request-Id"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
