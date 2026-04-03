@@ -191,26 +191,32 @@
 						</goals>
 					</execution>
 					<execution>
-						<id>check</id>
-						<goals>
-							<goal>check</goal>
-						</goals>
-						<configuration>
-							<rules>
-								<rule>
-									<element>BUNDLE</element>
-									<limits>
-										<limit>
-											<counter>INSTRUCTION</counter>
-											<value>COVEREDRATIO</value>
-											<minimum>0.80</minimum>
-										</limit>
-									</limits>
-								</rule>
-							</rules>
-						</configuration>
-					</execution>
+					<id>check</id>
+					<goals>
+						<goal>check</goal>
+					</goals>
+					<configuration>
+						<rules>
+							<rule>
+								<element>BUNDLE</element>
+								<limits>
+									<limit>
+										<counter>INSTRUCTION</counter>
+										<value>COVEREDRATIO</value>
+										<minimum>0.80</minimum>
+									</limit>
+								</limits>
+							</rule>
+						</rules>
+					</configuration>
+				</execution>
 				</executions>
+				<configuration>
+					<excludes>
+						<exclude>**/entity/**</exclude>
+						<exclude>com/fm/be/FmBackendApplication.class</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,4 +64,20 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
             + "AND e.organizationId = :organizationId")
     Page<Employee> searchByName(String namePattern, UUID organizationId,
                                 Pageable pageable);
+
+    /**
+     * Counts employees assigned to a specific site.
+     *
+     * @param siteId the site UUID
+     * @return count of employees at the site
+     */
+    long countBySiteId(UUID siteId);
+
+    /**
+     * Finds all employees assigned to a specific site (unpaginated).
+     *
+     * @param siteId the site UUID
+     * @return list of employees at the site
+     */
+    List<Employee> findBySiteId(UUID siteId);
 }
