@@ -318,27 +318,116 @@
 ---
 
 ### TASK-3.7: Suite 06 — Attendance (CRITICAL)
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-03  
-**Tests**: 28  
+**Date Completed**: 2026-04-03  
+**Tests**: 28 total  
 **Reference**: `PLANNING.md` §4.7
 
-**Endpoints**: punch, today, logs, report, site attendance  
-**Key tests**: punch IN/OUT inside geofence, OUTSIDE geofence (422), face mismatch (422), duplicate (409), inactive site (410), date range filtering, RBAC  
-**Test coordinates**: `test_latitude/longitude` (inside), `outside_latitude/longitude` (Delhi — far from Mumbai site)  
-**Environment vars set**: `attendance_log_id`
+**All 28 tests created:**
+
+*POST /v1/attendance/punch (13 tests):*
+- ✅ Punch IN inside geofence (faceMatchScore: 0.92) — 201, insideGeofence=true, stores `attendance_log_id`, `attendance_employee_id`
+- ✅ Punch OUT inside geofence (no face) — 201, proves face is optional
+- ✅ Punch IN without face (second employee) — 201, bootstraps second employee auth
+- ✅ Punch OUTSIDE geofence (Delhi coords 28.6139, 77.2090) — 422 GEOFENCE_VIOLATION
+- ✅ Face match score too low (0.5, threshold 0.85) — 422 FACE_MISMATCH
+- ✅ Duplicate punch within 5 min (OUT again) — 409 DUPLICATE_PUNCH
+- ✅ Punch at inactive site (pre-req deactivates, post-test reactivates) — 410 SITE_INACTIVE
+- ✅ Employee with no site assignment — 410 SITE_INACTIVE (null siteId → BusinessRuleException)
+- ✅ Missing punchType — 400 VALIDATION_ERROR
+- ✅ Missing coordinates (lat + lng) — 400 VALIDATION_ERROR with details
+- ✅ Invalid punchType ("BREAK") — 400/500 (enum deserialization)
+- ✅ RBAC: Admin cannot punch — 403
+- ✅ No auth token — 401
+
+*GET /v1/attendance/today (3 tests):*
+- ✅ Get today's punches — 200, array with ≥2 entries (IN + OUT)
+- ✅ No punches today (no-site employee) — 200, empty array
+- ✅ RBAC: Admin cannot use /today — 403
+
+*GET /v1/attendance/logs (6 tests):*
+- ✅ Get logs with date range — 200, paginated with meta (page/limit/total/totalPages)
+- ✅ Filter by siteId — 200, logs belong to specified site
+- ✅ Filter by employeeId — 200, logs belong to specified employee
+- ✅ Missing date range — 400/500 (Spring @RequestParam required)
+- ✅ Start after end — 200 empty or 400
+- ✅ RBAC: Employee cannot view logs — 403
+
+*GET /v1/attendance/report (3 tests):*
+- ✅ Site attendance report — 200, has siteId/totalPunchIns/totalPunchOuts/totalEmployees
+- ✅ Report for site with no attendance (site_id_2) — 200 with zero counts
+- ✅ Report for non-existent siteId — 200 (zeroes) or 404
+
+*GET /v1/attendance/site/{siteId} (3 tests):*
+- ✅ Today's site attendance — 200, array with attendance entries
+- ✅ Non-existent site — 200 empty or 404
+- ✅ RBAC: Employee cannot view site attendance — 403
+
+**Employee auth bootstrap**: Suite bootstraps its own employee authentication in the first test's pre-request:
+1. Creates employee via `POST /v1/employees` (also creates user)
+2. Sets password via `PUT /v1/admin/users/{userId}`
+3. Logs in via `POST /v1/auth/login` → stores `employee_access_token`
+4. Handles re-run idempotency (409 → just login)
+
+**Environment vars set**: `attendance_log_id`, `attendance_employee_id`, `employee_access_token`, `employee2_access_token`, `no_site_employee_token`
+
+**Test design notes:**
+- Geofence check order: site active → geofence → face match → duplicate (allows testing each independently)
+- Inside coords: 19.076, 72.8777 (Mumbai HQ, matches site creation in suite 04)
+- Outside coords: 28.6139, 77.2090 (Delhi, ~1,100 km from site)
+- Inactive site test deactivates and reactivates site within the same test
+- 3 temp employees created for test isolation (main, second, no-site)
 
 ---
 
 ### TASK-3.8: Suite 07 — Location
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-03  
-**Tests**: 20  
+**Date Completed**: 2026-04-03  
+**Tests**: 20 total  
 **Reference**: `PLANNING.md` §4.8
 
-**Endpoints**: update, live, heatmap, alerts  
-**Key tests**: location update (all/minimal fields), rate limit (429), live locations, heatmap with date range, geofence alerts  
-**Note**: Rate limit is 1 req/10s for location updates
+**All 20 tests created:**
+
+*POST /v1/location/update (7 tests):*
+- ✅ Update location with all fields (lat/lng/accuracy/battery/signal/airplaneMode) — 200, status "ok"
+- ✅ Rate limit (2nd request within 10s) — 429 RATE_LIMITED
+- ✅ Missing latitude — 400 VALIDATION_ERROR (11s busy-wait for rate limit reset)
+- ✅ Missing longitude — 400 VALIDATION_ERROR (11s busy-wait)
+- ✅ RBAC: Admin cannot update location — 403 (admin has separate rate limit counter)
+- ✅ Airplane mode true — 200, accepted (11s busy-wait)
+- ✅ Minimal update (coords only) — 200 (11s busy-wait)
+
+*GET /v1/location/live/{siteId} (4 tests):*
+- ✅ Live locations for site — 200, array with employee locations (employeeId/lat/lng/lastUpdated)
+- ✅ No active employees at different site (site_id_2) — 200, empty array
+- ✅ Non-existent site — 200 empty or 404
+- ✅ RBAC: Employee cannot view live locations — 403
+
+*GET /v1/location/heatmap/{siteId} (4 tests):*
+- ✅ Heatmap with date range — 200, points array with lat/lng/weight
+- ✅ No data in date range (past dates 2020) — 200, empty points
+- ✅ Missing date range — 400/500 (Spring @RequestParam required)
+- ✅ RBAC: Employee cannot view heatmap — 403
+
+*GET /v1/location/alerts (5 tests):*
+- ✅ Geofence alerts endpoint — 200, array (validates alert fields if present)
+- ✅ Alerts response structure — 200, success=true, data is array
+- ✅ No active alerts expected — 200 (employees updated inside geofence)
+- ✅ RBAC: Employee cannot view alerts — 403
+- ✅ Verify live location after update — 200, confirms location update reflected in live view
+
+**Rate limit handling**: Location update endpoint has aggressive 1 req/10s rate limit (via RateLimitInterceptor). Tests include 11-second busy-wait pre-request scripts between employee requests to respect the rate limit window. RBAC/admin tests use separate rate limit counter (per-user) and don't need waits.
+
+**Environment vars used**: `employee_access_token` (from suite 06 bootstrap), `site_id`, `site_id_2`, `admin_access_token`
+
+**Test design notes:**
+- Rate limit is Redis-backed per-user counter at key `rl:loc:<userId>`
+- Location updates write to Redis only (fast path <100ms), batch-flushed to PostgreSQL every 5 min
+- Live locations read from Redis hash `loc:<employeeId>` with 120s TTL
+- Heatmap data comes from PostgreSQL `location_history` table (may be empty if no batch flush occurred)
+- Alerts check Redis loc:* entries for employees outside geofence >5 min
 
 ---
 
