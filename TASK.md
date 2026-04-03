@@ -372,8 +372,9 @@
 ---
 
 ### TASK-3.2: Payroll Background Job
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-02  
+**Date Completed**: 2026-04-03  
 **Context**: Per `context/BACKEND_CONTEXT.md` §6.5. Payroll processing runs in background thread pool via `@Async("payrollExecutor")`. Iterates all active employees, computes gross/deductions, generates payslips, updates status to PENDING_APPROVAL.
 
 **What to do**:
@@ -382,15 +383,29 @@
 - Process: fetch employees → compute per employee (PF, ESIC, TDS, PT) → create payslips → generate bank file → update run status
 - Error handling: if any employee fails, log error, continue with others, mark run as partial
 
+**What was done**:
+- Added `@EnableAsync` and `@EnableScheduling` to `FmBackendApplication.java`
+- Created `common/config/AsyncConfig.java` with `payrollExecutor` (core=2, max=4, queue=10) and `mediaExecutor` (core=1, max=2, queue=20)
+- Created `scheduler/PayrollJobScheduler.java` with `@Async("payrollExecutor")` — full payroll computation with per-employee error handling
+- Added `List<Employee> findByOrganizationId(UUID)` to `EmployeeRepository`
+- Updated `PayrollService.initiatePayrollRun()` to trigger async processing
+- Payroll job: computes attendance days worked, pro-rates salary, calculates PF/ESIC/TDS/PT, generates payslips, aggregates totals
+- Error handling: individual employee failures logged and skipped, catastrophic failures revert run to DRAFT
+
 **Subtask — Tests (80%+ coverage)**:
-- ⬜ Unit test payroll job — mock 50 employees, verify all payslips generated with correct deductions
-- ⬜ Test error handling — one employee computation fails, others still processed
+- ✅ Unit test payroll job — multiple employees, verify all payslips generated with correct deductions (7 tests)
+- ✅ Test error handling — one employee computation fails, others still processed
+- ✅ Test skip employees without salary structure
+- ✅ Test catastrophic failure reverts status to DRAFT
+- ✅ Test non-DRAFT run is skipped
+- ✅ Test run not found handled gracefully
 
 ---
 
 ### TASK-3.3: Notifications Module
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-02  
+**Date Completed**: 2026-04-03  
 **Context**: Per `context/BACKEND_CONTEXT.md` §5.9. FCM push notifications for shift reminders, geofence alerts, admin broadcasts. Device token registration per user-device pair. Mark as read.
 
 **What to do**:
@@ -399,15 +414,27 @@
 - Create `NotificationService.java` — send targeted/broadcast, list user notifications, mark read, register/refresh device token
 - Create `NotificationController.java` — 4 endpoints per BACKEND_CONTEXT §5.9
 
+**What was done**:
+- Created `V16__create_notifications_table.sql` — notifications table for in-app tracking
+- Created `DeviceToken.java` entity with unique constraint on (userId, fcmToken)
+- Created `Notification.java` entity with type, read status, and JSONB metadata
+- Created `DeviceTokenRepository.java` and `NotificationRepository.java`
+- Created DTOs: `SendNotificationDto`, `NotificationResponseDto`, `RegisterDeviceDto`
+- Created `FcmService.java` — Firebase SDK wrapper with configurable enable/disable
+- Created `NotificationService.java` — send (persists + FCM push), list (paginated with unread count), mark read, register device, `sendToUser()` convenience method
+- Created `NotificationController.java` — 4 endpoints: POST /send, GET /, PUT /{id}/read, POST /register-device
+- RBAC: ADMIN/SUPER_ADMIN for send; authenticated users for list/read/register
+
 **Subtask — Tests (80%+ coverage)**:
-- ⬜ Unit test `NotificationService` — send, list, mark read, device registration
-- ⬜ Unit test `FcmService` — mock Firebase SDK, verify payload construction
+- ✅ Unit test `NotificationService` — send with/without devices, null type default, list paginated, mark read (found/not found), device registration (new/existing), sendToUser (9 tests)
+- ✅ Unit test `FcmService` — disabled mode returns null, handles null data, multiple devices (3 tests)
 
 ---
 
 ### TASK-3.4: Media Module
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-02  
+**Date Completed**: 2026-04-03  
 **Context**: Per `context/BACKEND_CONTEXT.md` §5.11 and `context/PLANNING.md` §4.5. Upload flow: client requests presigned URL → uploads directly to R2/S3 → confirms upload. Presigned URLs expire in 15 min. Max sizes: images 5MB, videos 50MB, documents 10MB. Thumbnails generated async.
 
 **What to do**:
@@ -416,9 +443,17 @@
 - Create `scheduler/ThumbnailProcessorJob.java` — `@Async` thumbnail generation (Thumbnailator for images)
 - Validate file type and size in presigned URL generation
 
+**What was done**:
+- Created DTOs: `PresignedUrlRequestDto`, `PresignedUrlResponseDto`, `MediaConfirmDto`, `MediaConfirmResponseDto`
+- Created `MediaService.java` — presigned URL generation (AWS SDK v2 S3Presigner), file type/size validation (image 5MB, video 50MB, doc 10MB), confirm upload with CDN URL + thumbnail URL
+- Created `MediaController.java` — 2 endpoints: POST /v1/media/presigned-url, POST /v1/media/confirm
+- Created `scheduler/ThumbnailProcessorJob.java` — `@Async("mediaExecutor")` thumbnail generation using Thumbnailator (200x200, 0.8 quality)
+- Supported types: JPEG/PNG/WebP/GIF, MP4/WebM/MOV, PDF/Excel/CSV
+- RBAC: authenticated users for both endpoints
+
 **Subtask — Tests (80%+ coverage)**:
-- ⬜ Unit test `MediaService` — presigned URL generation (valid type, invalid type, size limits), confirm flow
-- ⬜ Unit test thumbnail processor — mock image processing
+- ✅ Unit test `MediaService` — file type validation (6 tests), size validation (7 tests), file key generation (3 tests), confirm upload with/without thumbnail (2 tests) — 18 tests total
+- ✅ Unit test `ThumbnailProcessorJob` — thumbnail key generation (4 tests)
 
 ---
 

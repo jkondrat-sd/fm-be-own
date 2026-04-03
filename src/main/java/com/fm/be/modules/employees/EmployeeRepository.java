@@ -66,6 +66,15 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
                                 Pageable pageable);
 
     /**
+     * Finds all employees in an organization (unpaginated).
+     * Used by payroll background job to iterate all employees.
+     *
+     * @param organizationId the organization UUID
+     * @return list of all employees in the organization
+     */
+    List<Employee> findByOrganizationId(UUID organizationId);
+
+    /**
      * Counts employees assigned to a specific site.
      *
      * @param siteId the site UUID

@@ -44,6 +44,7 @@ public class PayrollService {
     private final PayrollRunRepository payrollRunRepository;
     private final PayslipRepository payslipRepository;
     private final PayrollCalculationService calculationService;
+    private final com.fm.be.scheduler.PayrollJobScheduler payrollJobScheduler;
 
     // ====================== Salary Structures ======================
 
@@ -169,6 +170,9 @@ public class PayrollService {
 
         log.info("Payroll run initiated: id={}, period={}/{}",
                 run.getId(), month, year);
+
+        payrollJobScheduler.processPayrollRun(run.getId());
+
         return toRunResponse(run);
     }
 

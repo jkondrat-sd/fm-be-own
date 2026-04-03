@@ -52,6 +52,8 @@ class PayrollServiceTest {
     private PayslipRepository payslipRepository;
     @Mock
     private PayrollCalculationService calculationService;
+    @Mock
+    private com.fm.be.scheduler.PayrollJobScheduler payrollJobScheduler;
 
     @InjectMocks
     private PayrollService payrollService;
