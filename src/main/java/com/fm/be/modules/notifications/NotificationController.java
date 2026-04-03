@@ -7,6 +7,8 @@ import com.fm.be.common.security.UserPrincipal;
 import com.fm.be.modules.notifications.dto.NotificationResponseDto;
 import com.fm.be.modules.notifications.dto.RegisterDeviceDto;
 import com.fm.be.modules.notifications.dto.SendNotificationDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,18 +27,11 @@ import java.util.UUID;
 
 /**
  * REST controller for notification endpoints.
- *
- * <p>Endpoints:</p>
- * <ul>
- *   <li>POST /v1/notifications/send — Send targeted notification (admin)</li>
- *   <li>GET /v1/notifications — List user's notifications</li>
- *   <li>PUT /v1/notifications/{id}/read — Mark notification as read</li>
- *   <li>POST /v1/notifications/register-device — Register FCM token</li>
- * </ul>
  */
 @RestController
 @RequestMapping("/v1/notifications")
 @RequiredArgsConstructor
+@Tag(name = "Notifications", description = "FCM push notifications, in-app notifications, device token management")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -47,6 +42,8 @@ public class NotificationController {
      * @param dto the notification data
      * @return the created notification
      */
+    @Operation(summary = "Send notification", description = "Sends a targeted push + in-app notification to a user. Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Notification sent"))
     @PostMapping("/send")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
@@ -62,6 +59,7 @@ public class NotificationController {
      * @param pageRequest pagination parameters
      * @return paginated notifications with unread count
      */
+    @Operation(summary = "List notifications", description = "Paginated list of the authenticated user's notifications with unread count.")
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<Object> listNotifications(
@@ -84,6 +82,7 @@ public class NotificationController {
      * @param id the notification UUID
      * @return the updated notification
      */
+    @Operation(summary = "Mark as read", description = "Marks a single notification as read.")
     @PutMapping("/{id}/read")
     @PreAuthorize("isAuthenticated()")
     public NotificationResponseDto markAsRead(@PathVariable UUID id) {
@@ -96,6 +95,8 @@ public class NotificationController {
      * @param principal the authenticated user
      * @param dto the device registration data
      */
+    @Operation(summary = "Register device", description = "Registers or refreshes an FCM device token for push notifications.",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "Device registered"))
     @PostMapping("/register-device")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("isAuthenticated()")

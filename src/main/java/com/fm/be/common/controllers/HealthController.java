@@ -1,5 +1,7 @@
 package com.fm.be.common.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/v1/health")
 @RequiredArgsConstructor
+@Tag(name = "Health", description = "System health and connectivity checks (public)")
 public class HealthController {
 
     private final DataSource dataSource;
@@ -38,6 +41,12 @@ public class HealthController {
      *
      * @return health status with uptime, version, and service checks
      */
+    @Operation(
+            summary = "System health check",
+            description = "Returns service status for database, Redis, uptime, and version. No auth required.",
+            responses = {
+                    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Health status retrieved")
+            })
     @GetMapping
     public Map<String, Object> getHealth() {
         Map<String, Object> response = new LinkedHashMap<>();

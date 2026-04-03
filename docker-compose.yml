@@ -1,0 +1,76 @@
+# ============================================================
+# FM-BE — Local Development Infrastructure
+# ============================================================
+# Usage: docker compose up -d
+# This starts PostgreSQL+PostGIS, Redis, and MinIO (S3-compatible)
+# for local development. The API itself is run via Maven/IDE.
+# ============================================================
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: fm-postgres
+    environment:
+      POSTGRES_DB: fm_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - fm_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d fm_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: fm-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - fm_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: fm-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - fm_miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO bucket initialization
+  minio-init:
+    image: minio/mc:latest
+    container_name: fm-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minioadmin minioadmin;
+      mc mb --ignore-existing local/fm-media;
+      mc anonymous set download local/fm-media;
+      echo 'Bucket fm-media created successfully';
+      "
+
+volumes:
+  fm_pgdata:
+  fm_redisdata:
+  fm_miniodata:

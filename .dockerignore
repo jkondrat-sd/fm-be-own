@@ -1,0 +1,13 @@
+target/
+.git/
+.gitignore
+.idea/
+*.iml
+*.log
+node_modules/
+context/
+PLANNING.md
+TASK.md
+docker-compose.yml
+.dockerignore
+README.md

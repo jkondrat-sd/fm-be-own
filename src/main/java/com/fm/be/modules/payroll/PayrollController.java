@@ -8,6 +8,9 @@ import com.fm.be.modules.payroll.dto.CreateSalaryStructureDto;
 import com.fm.be.modules.payroll.dto.PayrollRunResponseDto;
 import com.fm.be.modules.payroll.dto.PayslipResponseDto;
 import com.fm.be.modules.payroll.dto.SalaryStructureResponseDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,23 +30,12 @@ import java.util.UUID;
 
 /**
  * REST controller for payroll management endpoints.
- *
- * <p>Endpoints:</p>
- * <ul>
- *   <li>POST /v1/payroll/salary-structure — Create salary structure</li>
- *   <li>GET /v1/payroll/salary-structure/{employeeId} — Get structure</li>
- *   <li>PUT /v1/payroll/salary-structure/{employeeId} — Update structure</li>
- *   <li>POST /v1/payroll/run — Initiate payroll run</li>
- *   <li>GET /v1/payroll/run/{id}/status — Get run status (for polling)</li>
- *   <li>POST /v1/payroll/run/{id}/approve — Approve run</li>
- *   <li>POST /v1/payroll/run/{id}/reject — Reject run</li>
- *   <li>GET /v1/payroll/runs — List runs (paginated)</li>
- *   <li>GET /v1/payroll/run/{id}/payslips — Get payslips for a run</li>
- * </ul>
+ * Indian statutory compliance: PF, ESIC, TDS, PT.
  */
 @RestController
 @RequestMapping("/v1/payroll")
 @RequiredArgsConstructor
+@Tag(name = "Payroll", description = "Salary structures, payroll runs (async), PF/ESIC/TDS/PT compliance, payslips")
 public class PayrollController {
 
     private final PayrollService payrollService;
@@ -53,6 +45,8 @@ public class PayrollController {
     /**
      * Creates a salary structure for an employee.
      */
+    @Operation(summary = "Create salary structure", description = "Creates a salary structure with auto-calculated PF/ESIC/TDS/PT deductions. Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Salary structure created"))
     @PostMapping("/salary-structure")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
@@ -64,6 +58,7 @@ public class PayrollController {
     /**
      * Gets the salary structure for an employee.
      */
+    @Operation(summary = "Get salary structure", description = "Retrieves the salary structure for an employee. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping("/salary-structure/{employeeId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public SalaryStructureResponseDto getSalaryStructure(
@@ -74,6 +69,7 @@ public class PayrollController {
     /**
      * Updates a salary structure (recalculates deductions).
      */
+    @Operation(summary = "Update salary structure", description = "Updates salary components and recalculates deductions. Roles: ADMIN, SUPER_ADMIN")
     @PutMapping("/salary-structure/{employeeId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public SalaryStructureResponseDto updateSalaryStructure(
@@ -87,13 +83,15 @@ public class PayrollController {
     /**
      * Initiates a payroll run (returns immediately, processing is async).
      */
+    @Operation(summary = "Initiate payroll run", description = "Starts async payroll processing. Returns job ID immediately for status polling. Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Payroll run initiated"))
     @PostMapping("/run")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public PayrollRunResponseDto initiatePayrollRun(
             @CurrentUser UserPrincipal principal,
-            @RequestParam int month,
-            @RequestParam int year) {
+            @Parameter(description = "Payroll month (1-12)", required = true) @RequestParam int month,
+            @Parameter(description = "Payroll year", required = true) @RequestParam int year) {
         return payrollService.initiatePayrollRun(
                 month, year,
                 principal.getOrganizationId(),
@@ -103,6 +101,7 @@ public class PayrollController {
     /**
      * Gets the status of a payroll run (for polling).
      */
+    @Operation(summary = "Get run status", description = "Polls the current status of a payroll run (<50ms). Roles: ADMIN, SUPER_ADMIN")
     @GetMapping("/run/{id}/status")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public PayrollRunResponseDto getRunStatus(@PathVariable UUID id) {
@@ -112,6 +111,7 @@ public class PayrollController {
     /**
      * Approves a payroll run.
      */
+    @Operation(summary = "Approve payroll run", description = "Approves a PENDING_APPROVAL payroll run. Roles: ADMIN, SUPER_ADMIN")
     @PostMapping("/run/{id}/approve")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public PayrollRunResponseDto approveRun(
@@ -123,6 +123,7 @@ public class PayrollController {
     /**
      * Rejects a payroll run.
      */
+    @Operation(summary = "Reject payroll run", description = "Rejects a PENDING_APPROVAL payroll run. Roles: ADMIN, SUPER_ADMIN")
     @PostMapping("/run/{id}/reject")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public PayrollRunResponseDto rejectRun(@PathVariable UUID id) {
@@ -132,6 +133,7 @@ public class PayrollController {
     /**
      * Lists payroll runs for the organization with pagination.
      */
+    @Operation(summary = "List payroll runs", description = "Paginated list of payroll runs for the organization. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping("/runs")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ApiResponse<Object> listRuns(
@@ -146,6 +148,7 @@ public class PayrollController {
     /**
      * Gets all payslips for a payroll run.
      */
+    @Operation(summary = "Get payslips", description = "Returns all generated payslips for a payroll run. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping("/run/{id}/payslips")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<PayslipResponseDto> getPayslips(@PathVariable UUID id) {

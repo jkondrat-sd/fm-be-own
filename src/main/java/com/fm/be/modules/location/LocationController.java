@@ -9,6 +9,9 @@ import com.fm.be.modules.location.dto.GeofenceAlertDto;
 import com.fm.be.modules.location.dto.HeatmapDto;
 import com.fm.be.modules.location.dto.LiveLocationDto;
 import com.fm.be.modules.location.dto.LocationUpdateDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,18 +30,11 @@ import java.util.UUID;
 
 /**
  * REST controller for location tracking endpoints.
- *
- * <p>Endpoints:</p>
- * <ul>
- *   <li>POST /v1/location/update — Submit location (EMPLOYEE)</li>
- *   <li>GET /v1/location/live/{siteId} — Live locations (SUPERVISOR, ADMIN)</li>
- *   <li>GET /v1/location/heatmap/{siteId} — Heatmap data (ADMIN)</li>
- *   <li>GET /v1/location/alerts — Geofence alerts (SUPERVISOR, ADMIN)</li>
- * </ul>
  */
 @RestController
 @RequestMapping("/v1/location")
 @RequiredArgsConstructor
+@Tag(name = "Location", description = "Live location ingestion, heatmap aggregation, geofence alerts")
 public class LocationController {
 
     private final LocationService locationService;
@@ -48,6 +44,8 @@ public class LocationController {
      * Submits a location update from the authenticated employee.
      * Written to Redis only for fast response (&lt;100ms target).
      */
+    @Operation(summary = "Submit location update", description = "Writes location to Redis (<100ms). Rate limited to 1/10s. Roles: EMPLOYEE",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Location recorded"))
     @PostMapping("/update")
     @PreAuthorize("hasRole('EMPLOYEE')")
     public Map<String, String> updateLocation(
@@ -64,6 +62,7 @@ public class LocationController {
     /**
      * Gets live locations for all employees at a site.
      */
+    @Operation(summary = "Live locations", description = "Real-time locations for all employees at a site (from Redis). Roles: SUPERVISOR, ADMIN, SUPER_ADMIN")
     @GetMapping("/live/{siteId}")
     @PreAuthorize("hasAnyRole('SUPERVISOR', 'ADMIN', 'SUPER_ADMIN')")
     public List<LiveLocationDto> getLiveLocations(
@@ -74,18 +73,20 @@ public class LocationController {
     /**
      * Gets heatmap data for a site within a date range.
      */
+    @Operation(summary = "Heatmap data", description = "Aggregated location heatmap for a site. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping("/heatmap/{siteId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public HeatmapDto getHeatmapData(
             @PathVariable UUID siteId,
-            @RequestParam Instant start,
-            @RequestParam Instant end) {
+            @Parameter(description = "Start of date range (ISO 8601)") @RequestParam Instant start,
+            @Parameter(description = "End of date range (ISO 8601)") @RequestParam Instant end) {
         return locationService.getHeatmapData(siteId, start, end);
     }
 
     /**
      * Gets geofence violation alerts for the authenticated user's org.
      */
+    @Operation(summary = "Geofence alerts", description = "Lists employees currently outside their assigned geofence (>5 min). Roles: SUPERVISOR, ADMIN, SUPER_ADMIN")
     @GetMapping("/alerts")
     @PreAuthorize("hasAnyRole('SUPERVISOR', 'ADMIN', 'SUPER_ADMIN')")
     public List<GeofenceAlertDto> getAlerts(

@@ -8,6 +8,8 @@ import com.fm.be.modules.sites.dto.CreateSiteDto;
 import com.fm.be.modules.sites.dto.GeofenceDto;
 import com.fm.be.modules.sites.dto.SiteResponseDto;
 import com.fm.be.modules.sites.dto.UpdateSiteDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,20 +29,11 @@ import java.util.UUID;
 
 /**
  * REST controller for site management endpoints.
- *
- * <p>Endpoints:</p>
- * <ul>
- *   <li>POST /v1/sites — Create site</li>
- *   <li>PUT /v1/sites/{id} — Update site</li>
- *   <li>GET /v1/sites/{id} — Get site</li>
- *   <li>GET /v1/sites — List sites (paginated)</li>
- *   <li>PUT /v1/sites/{id}/geofence — Set geofence</li>
- *   <li>DELETE /v1/sites/{id} — Deactivate site (soft delete)</li>
- * </ul>
  */
 @RestController
 @RequestMapping("/v1/sites")
 @RequiredArgsConstructor
+@Tag(name = "Sites", description = "Site CRUD and geofence polygon management (PostGIS)")
 public class SiteController {
 
     private final SiteService siteService;
@@ -48,6 +41,8 @@ public class SiteController {
     /**
      * Creates a new site.
      */
+    @Operation(summary = "Create site", description = "Creates a new site with optional geofence. Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Site created"))
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
@@ -58,6 +53,7 @@ public class SiteController {
     /**
      * Updates an existing site.
      */
+    @Operation(summary = "Update site", description = "Updates site details. Roles: ADMIN, SUPER_ADMIN")
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public SiteResponseDto updateSite(@PathVariable UUID id,
@@ -69,6 +65,7 @@ public class SiteController {
     /**
      * Gets a site by ID.
      */
+    @Operation(summary = "Get site", description = "Retrieves site details by ID. Roles: ADMIN, SUPER_ADMIN, SUPERVISOR")
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERVISOR')")
     public SiteResponseDto getSite(@PathVariable UUID id,
@@ -79,6 +76,7 @@ public class SiteController {
     /**
      * Lists sites in the authenticated user's organization.
      */
+    @Operation(summary = "List sites", description = "Paginated list of sites in the organization. Roles: ADMIN, SUPER_ADMIN, SUPERVISOR")
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPERVISOR')")
     public ApiResponse<Object> listSites(@CurrentUser UserPrincipal principal,
@@ -92,6 +90,7 @@ public class SiteController {
     /**
      * Sets the geofence for a site (circular or polygon).
      */
+    @Operation(summary = "Set geofence", description = "Sets a circular or polygon geofence boundary for a site. Roles: ADMIN, SUPER_ADMIN")
     @PutMapping("/{id}/geofence")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public Map<String, String> setGeofence(@PathVariable UUID id,
@@ -104,6 +103,8 @@ public class SiteController {
     /**
      * Deactivates a site (soft delete).
      */
+    @Operation(summary = "Deactivate site", description = "Soft-deletes a site by setting isActive=false. Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "Site deactivated"))
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")

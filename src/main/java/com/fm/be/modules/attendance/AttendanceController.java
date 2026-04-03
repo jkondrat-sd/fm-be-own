@@ -11,6 +11,10 @@ import com.fm.be.modules.attendance.dto.PunchResponseDto;
 import com.fm.be.modules.employees.EmployeeRepository;
 import com.fm.be.modules.employees.entity.Employee;
 import com.fm.be.common.exception.ResourceNotFoundException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,19 +34,11 @@ import java.util.UUID;
 
 /**
  * REST controller for attendance punch and reporting endpoints.
- *
- * <p>Endpoints:</p>
- * <ul>
- *   <li>POST /v1/attendance/punch — Punch in/out (EMPLOYEE)</li>
- *   <li>GET /v1/attendance/today — Get today's punches (EMPLOYEE)</li>
- *   <li>GET /v1/attendance/logs — Paginated logs (ADMIN, SUPERVISOR, CLIENT)</li>
- *   <li>GET /v1/attendance/report — Aggregated report (ADMIN, SUPERVISOR, CLIENT)</li>
- *   <li>GET /v1/attendance/site/{siteId} — Site attendance today (ADMIN, SUPERVISOR)</li>
- * </ul>
  */
 @RestController
 @RequestMapping("/v1/attendance")
 @RequiredArgsConstructor
+@Tag(name = "Attendance", description = "Punch in/out with geofence + face verification, attendance reports")
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
@@ -51,6 +47,12 @@ public class AttendanceController {
     /**
      * Records an attendance punch for the authenticated employee.
      */
+    @Operation(summary = "Punch in/out", description = "Records attendance with geofence validation and optional face match. Roles: EMPLOYEE")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Punch recorded"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Duplicate punch within 5-min window"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "Geofence violation or face mismatch")
+    })
     @PostMapping("/punch")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('EMPLOYEE')")
@@ -66,6 +68,7 @@ public class AttendanceController {
     /**
      * Gets today's attendance logs for the authenticated employee.
      */
+    @Operation(summary = "Today's attendance", description = "Returns the current day's punch records for the authenticated employee. Roles: EMPLOYEE")
     @GetMapping("/today")
     @PreAuthorize("hasRole('EMPLOYEE')")
     public List<AttendanceLogDto> getTodayAttendance(
@@ -80,13 +83,14 @@ public class AttendanceController {
     /**
      * Gets paginated attendance logs, optionally filtered by site/employee.
      */
+    @Operation(summary = "Attendance logs", description = "Paginated attendance logs with optional site/employee filters. Roles: ADMIN, SUPERVISOR, SUPER_ADMIN, CLIENT")
     @GetMapping("/logs")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'SUPER_ADMIN', 'CLIENT')")
     public ApiResponse<Object> getAttendanceLogs(
-            @RequestParam(required = false) UUID siteId,
-            @RequestParam(required = false) UUID employeeId,
-            @RequestParam Instant start,
-            @RequestParam Instant end,
+            @Parameter(description = "Filter by site ID") @RequestParam(required = false) UUID siteId,
+            @Parameter(description = "Filter by employee ID") @RequestParam(required = false) UUID employeeId,
+            @Parameter(description = "Start of date range (ISO 8601)", required = true) @RequestParam Instant start,
+            @Parameter(description = "End of date range (ISO 8601)", required = true) @RequestParam Instant end,
             @Valid PageRequestDto pageRequest) {
         AttendanceService.PaginatedAttendanceLogs result =
                 attendanceService.getAttendanceLogs(
@@ -97,6 +101,7 @@ public class AttendanceController {
     /**
      * Gets an aggregated attendance report for a site and date range.
      */
+    @Operation(summary = "Attendance report", description = "Aggregated attendance report for a site and date range. Roles: ADMIN, SUPERVISOR, SUPER_ADMIN, CLIENT")
     @GetMapping("/report")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'SUPER_ADMIN', 'CLIENT')")
     public AttendanceReportDto getAttendanceReport(
@@ -109,6 +114,7 @@ public class AttendanceController {
     /**
      * Gets today's attendance for a specific site.
      */
+    @Operation(summary = "Site attendance today", description = "Today's attendance records for a specific site. Roles: ADMIN, SUPERVISOR, SUPER_ADMIN")
     @GetMapping("/site/{siteId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'SUPER_ADMIN')")
     public List<AttendanceLogDto> getSiteAttendance(

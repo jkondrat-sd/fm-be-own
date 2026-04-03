@@ -9,6 +9,9 @@ import com.fm.be.modules.employees.dto.CreateEmployeeDto;
 import com.fm.be.modules.employees.dto.EmployeeDocumentDto;
 import com.fm.be.modules.employees.dto.EmployeeResponseDto;
 import com.fm.be.modules.employees.dto.UpdateEmployeeDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,22 +31,11 @@ import java.util.UUID;
 
 /**
  * REST controller for employee management endpoints.
- *
- * <p>Endpoints:</p>
- * <ul>
- *   <li>POST /v1/employees — Create employee (ADMIN, SUPER_ADMIN)</li>
- *   <li>PUT /v1/employees/{id} — Update employee (ADMIN, SUPER_ADMIN)</li>
- *   <li>GET /v1/employees/{id} — Get employee (ADMIN, SUPER_ADMIN)</li>
- *   <li>GET /v1/employees — List employees (ADMIN, SUPER_ADMIN)</li>
- *   <li>GET /v1/employees/search — Search employees (ADMIN, SUPER_ADMIN)</li>
- *   <li>GET /v1/employees/me — Get own profile (EMPLOYEE)</li>
- *   <li>POST /v1/employees/{id}/face — Register face (ADMIN, SUPER_ADMIN)</li>
- *   <li>POST /v1/employees/{id}/documents — Add document (ADMIN, SUPER_ADMIN)</li>
- * </ul>
  */
 @RestController
 @RequestMapping("/v1/employees")
 @RequiredArgsConstructor
+@Tag(name = "Employees", description = "Employee onboarding, profiles, documents, and face registration")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -51,6 +43,8 @@ public class EmployeeController {
     /**
      * Creates a new employee with associated user account.
      */
+    @Operation(summary = "Create employee", description = "Creates a new employee with associated user account. Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Employee created"))
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
@@ -62,6 +56,7 @@ public class EmployeeController {
     /**
      * Updates an existing employee.
      */
+    @Operation(summary = "Update employee", description = "Updates employee profile fields. Roles: ADMIN, SUPER_ADMIN")
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public EmployeeResponseDto updateEmployee(@PathVariable UUID id,
@@ -72,6 +67,7 @@ public class EmployeeController {
     /**
      * Gets an employee by ID.
      */
+    @Operation(summary = "Get employee", description = "Retrieves an employee profile by ID. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public EmployeeResponseDto getEmployee(@PathVariable UUID id) {
@@ -81,6 +77,7 @@ public class EmployeeController {
     /**
      * Lists employees in the authenticated user's organization.
      */
+    @Operation(summary = "List employees", description = "Paginated list of employees in the organization. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ApiResponse<Object> listEmployees(@CurrentUser UserPrincipal principal,
@@ -94,10 +91,11 @@ public class EmployeeController {
     /**
      * Searches employees by name.
      */
+    @Operation(summary = "Search employees", description = "Search employees by name within the organization. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping("/search")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ApiResponse<Object> searchEmployees(@CurrentUser UserPrincipal principal,
-                                               @RequestParam String query,
+                                               @Parameter(description = "Name search query") @RequestParam String query,
                                                @Valid PageRequestDto pageRequest) {
         EmployeeService.PaginatedEmployees result =
                 employeeService.searchEmployees(
@@ -108,6 +106,7 @@ public class EmployeeController {
     /**
      * Gets the authenticated employee's own profile.
      */
+    @Operation(summary = "Get own profile", description = "Returns the authenticated employee's own profile. Roles: EMPLOYEE")
     @GetMapping("/me")
     @PreAuthorize("hasRole('EMPLOYEE')")
     public EmployeeResponseDto getMyProfile(
@@ -118,6 +117,7 @@ public class EmployeeController {
     /**
      * Registers a face embedding for an employee.
      */
+    @Operation(summary = "Register face", description = "Stores a face embedding vector for facial verification. Roles: ADMIN, SUPER_ADMIN")
     @PostMapping("/{id}/face")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public Map<String, String> registerFace(@PathVariable UUID id,
@@ -129,11 +129,12 @@ public class EmployeeController {
     /**
      * Adds a document to an employee's records.
      */
+    @Operation(summary = "Add document", description = "Attaches a verified document (Aadhaar, PAN, etc.) to an employee record. Roles: ADMIN, SUPER_ADMIN")
     @PostMapping("/{id}/documents")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public EmployeeDocumentDto addDocument(@PathVariable UUID id,
-                                           @RequestParam DocumentType type,
-                                           @RequestParam String fileUrl) {
+                                           @Parameter(description = "Document type") @RequestParam DocumentType type,
+                                           @Parameter(description = "URL of the uploaded document") @RequestParam String fileUrl) {
         return employeeService.addDocument(id, type, fileUrl);
     }
 }

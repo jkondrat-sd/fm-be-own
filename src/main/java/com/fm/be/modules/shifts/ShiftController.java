@@ -13,6 +13,9 @@ import com.fm.be.modules.shifts.dto.ShiftAssignmentDto;
 import com.fm.be.modules.shifts.dto.UpdateShiftDto;
 import com.fm.be.modules.shifts.entity.Shift;
 import com.fm.be.modules.shifts.entity.ShiftAssignment;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,19 +36,11 @@ import java.util.UUID;
 
 /**
  * REST controller for shift scheduling and assignment endpoints.
- *
- * <p>Endpoints:</p>
- * <ul>
- *   <li>POST /v1/shifts — Create shift (ADMIN, SUPER_ADMIN)</li>
- *   <li>PUT /v1/shifts/{id} — Update shift (ADMIN, SUPER_ADMIN)</li>
- *   <li>GET /v1/shifts/site/{siteId} — List shifts for site (ADMIN, SUPERVISOR)</li>
- *   <li>POST /v1/shifts/assign — Assign employee (ADMIN, SUPER_ADMIN)</li>
- *   <li>GET /v1/shifts/schedule — Get schedule (EMPLOYEE for own, ADMIN for any)</li>
- * </ul>
  */
 @RestController
 @RequestMapping("/v1/shifts")
 @RequiredArgsConstructor
+@Tag(name = "Shifts", description = "Shift scheduling, employee assignment, and mobile task view")
 public class ShiftController {
 
     private final ShiftService shiftService;
@@ -54,6 +49,8 @@ public class ShiftController {
     /**
      * Creates a new shift template.
      */
+    @Operation(summary = "Create shift", description = "Creates a new shift template for a site. Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Shift created"))
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
@@ -64,6 +61,7 @@ public class ShiftController {
     /**
      * Updates an existing shift template.
      */
+    @Operation(summary = "Update shift", description = "Updates shift name, times, or active status. Roles: ADMIN, SUPER_ADMIN")
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public Shift updateShift(@PathVariable UUID id,
@@ -74,6 +72,7 @@ public class ShiftController {
     /**
      * Lists shifts for a site with pagination.
      */
+    @Operation(summary = "List site shifts", description = "Paginated list of shift templates for a site. Roles: ADMIN, SUPERVISOR, SUPER_ADMIN")
     @GetMapping("/site/{siteId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPERVISOR', 'SUPER_ADMIN')")
     public ApiResponse<Object> listShifts(
@@ -86,6 +85,8 @@ public class ShiftController {
     /**
      * Assigns an employee to a shift on a specific date.
      */
+    @Operation(summary = "Assign employee to shift", description = "Assigns an employee to a shift on a date. UNIQUE(employeeId, date). Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Assignment created"))
     @PostMapping("/assign")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
@@ -98,13 +99,14 @@ public class ShiftController {
      * Gets the schedule for the authenticated employee or a specified employee.
      * Employees can only view their own schedule.
      */
+    @Operation(summary = "Get schedule", description = "Returns shift schedule for a date range. Employees see own; admins can specify employeeId.")
     @GetMapping("/schedule")
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN', 'SUPERVISOR', 'SUPER_ADMIN')")
     public List<ScheduleResponseDto> getSchedule(
             @CurrentUser UserPrincipal principal,
-            @RequestParam(required = false) UUID employeeId,
-            @RequestParam LocalDate startDate,
-            @RequestParam LocalDate endDate) {
+            @Parameter(description = "Employee ID (admin only, omit for own schedule)") @RequestParam(required = false) UUID employeeId,
+            @Parameter(description = "Start date (YYYY-MM-DD)", required = true) @RequestParam LocalDate startDate,
+            @Parameter(description = "End date (YYYY-MM-DD)", required = true) @RequestParam LocalDate endDate) {
 
         UUID targetEmployeeId;
         if (employeeId != null

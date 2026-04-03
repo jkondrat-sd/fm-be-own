@@ -4,6 +4,8 @@ import com.fm.be.modules.media.dto.MediaConfirmDto;
 import com.fm.be.modules.media.dto.MediaConfirmResponseDto;
 import com.fm.be.modules.media.dto.PresignedUrlRequestDto;
 import com.fm.be.modules.media.dto.PresignedUrlResponseDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,16 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * REST controller for media upload endpoints.
- *
- * <p>Endpoints:</p>
- * <ul>
- *   <li>POST /v1/media/presigned-url — Get presigned upload URL</li>
- *   <li>POST /v1/media/confirm — Confirm upload completion</li>
- * </ul>
  */
 @RestController
 @RequestMapping("/v1/media")
 @RequiredArgsConstructor
+@Tag(name = "Media", description = "Presigned URL upload to S3/R2, upload confirmation, thumbnail generation")
 public class MediaController {
 
     private final MediaService mediaService;
@@ -37,6 +34,8 @@ public class MediaController {
      * @param dto the upload request with file metadata
      * @return the presigned URL, file key, and CDN URL
      */
+    @Operation(summary = "Get presigned upload URL", description = "Generates a 15-min presigned URL for direct upload. Validates file type (image/video/doc) and size limits.",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Presigned URL generated"))
     @PostMapping("/presigned-url")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("isAuthenticated()")
@@ -52,6 +51,7 @@ public class MediaController {
      * @param dto the confirmation data with file key
      * @return the confirmed media details
      */
+    @Operation(summary = "Confirm upload", description = "Confirms a completed upload and triggers async thumbnail generation for images.")
     @PostMapping("/confirm")
     @PreAuthorize("isAuthenticated()")
     public MediaConfirmResponseDto confirmUpload(

@@ -4,6 +4,7 @@ import com.fm.be.common.exception.BusinessRuleException;
 import com.fm.be.modules.media.dto.MediaConfirmDto;
 import com.fm.be.modules.media.dto.MediaConfirmResponseDto;
 import com.fm.be.modules.media.dto.PresignedUrlRequestDto;
+import com.fm.be.modules.media.dto.PresignedUrlResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,9 +12,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+
+import java.net.URI;
+import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link MediaService}.
@@ -223,6 +235,83 @@ class MediaServiceTest {
 
             assertThat(result.getCdnUrl()).contains("abc-123.pdf");
             assertThat(result.getThumbnailUrl()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("generatePresignedUrl")
+    class GeneratePresignedUrlTests {
+
+        @Test
+        @DisplayName("should generate presigned URL for valid image upload")
+        void generatePresignedUrl_validImage_returnsUrl() throws Exception {
+            MediaService spyService = spy(mediaService);
+
+            ReflectionTestUtils.setField(spyService,
+                    "storageEndpoint", "http://localhost:9000");
+            ReflectionTestUtils.setField(spyService,
+                    "bucketName", "fm-media");
+            ReflectionTestUtils.setField(spyService,
+                    "presignedUrlExpirationMinutes", 15);
+
+            S3Presigner mockPresigner = mock(S3Presigner.class);
+            doReturn(mockPresigner).when(spyService).buildPresigner();
+
+            PresignedPutObjectRequest presignedReq =
+                    mock(PresignedPutObjectRequest.class);
+            when(presignedReq.url())
+                    .thenReturn(new URL("http://localhost:9000/fm-media/test"));
+            when(mockPresigner.presignPutObject(
+                    any(PutObjectPresignRequest.class)))
+                    .thenReturn(presignedReq);
+
+            PresignedUrlRequestDto dto = PresignedUrlRequestDto.builder()
+                    .fileName("photo.jpg")
+                    .contentType("image/jpeg")
+                    .fileSize(1024L)
+                    .category("attendance")
+                    .build();
+
+            PresignedUrlResponseDto result =
+                    spyService.generatePresignedUrl(dto);
+
+            assertThat(result.getUploadUrl())
+                    .startsWith("http://localhost:9000");
+            assertThat(result.getFileKey())
+                    .startsWith("attendance/")
+                    .endsWith(".jpg");
+            assertThat(result.getCdnUrl()).contains("fm-media");
+            assertThat(result.getExpiresAt()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("should reject invalid content type before presigning")
+        void generatePresignedUrl_invalidType_throws() {
+            PresignedUrlRequestDto dto = PresignedUrlRequestDto.builder()
+                    .fileName("malware.exe")
+                    .contentType("application/x-executable")
+                    .fileSize(1024L)
+                    .build();
+
+            assertThatThrownBy(() ->
+                    mediaService.generatePresignedUrl(dto))
+                    .isInstanceOf(BusinessRuleException.class)
+                    .hasMessageContaining("File type not allowed");
+        }
+
+        @Test
+        @DisplayName("should reject oversized file before presigning")
+        void generatePresignedUrl_oversizedImage_throws() {
+            PresignedUrlRequestDto dto = PresignedUrlRequestDto.builder()
+                    .fileName("huge.jpg")
+                    .contentType("image/jpeg")
+                    .fileSize(10 * 1024 * 1024L)
+                    .build();
+
+            assertThatThrownBy(() ->
+                    mediaService.generatePresignedUrl(dto))
+                    .isInstanceOf(BusinessRuleException.class)
+                    .hasMessageContaining("exceeds maximum");
         }
     }
 }

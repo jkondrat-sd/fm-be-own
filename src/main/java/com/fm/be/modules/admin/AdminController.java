@@ -6,6 +6,9 @@ import com.fm.be.common.dto.PageRequestDto;
 import com.fm.be.common.security.UserPrincipal;
 import com.fm.be.modules.admin.dto.SystemConfigDto;
 import com.fm.be.modules.admin.dto.SystemStatsDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,20 +30,11 @@ import java.util.UUID;
 
 /**
  * REST controller for admin-only endpoints (non-user-CRUD).
- *
- * <p>User CRUD is handled by {@link com.fm.be.modules.users.UserController}
- * at {@code /v1/admin/users}. This controller provides:</p>
- * <ul>
- *   <li>GET    /v1/admin/audit-logs — Audit trail (paginated)</li>
- *   <li>GET    /v1/admin/dashboard/stats — System-wide statistics</li>
- *   <li>POST   /v1/admin/export/{entity} — Export data (CSV)</li>
- *   <li>GET    /v1/admin/config — System configuration</li>
- *   <li>PUT    /v1/admin/config — Update system configuration</li>
- * </ul>
  */
 @RestController
 @RequestMapping("/v1/admin")
 @RequiredArgsConstructor
+@Tag(name = "Admin", description = "Audit logs, dashboard stats, data export (CSV), system configuration")
 public class AdminController {
 
     private final AdminService adminService;
@@ -53,11 +47,12 @@ public class AdminController {
      * @param pageRequest pagination parameters
      * @return paginated audit log entries
      */
+    @Operation(summary = "Get audit logs", description = "Paginated audit trail with optional user/action filters. Roles: SUPER_ADMIN")
     @GetMapping("/audit-logs")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ApiResponse<Object> getAuditLogs(
-            @RequestParam(required = false) UUID userId,
-            @RequestParam(required = false) String action,
+            @Parameter(description = "Filter by acting user ID") @RequestParam(required = false) UUID userId,
+            @Parameter(description = "Filter by action type (e.g. CREATE_USER)") @RequestParam(required = false) String action,
             @Valid PageRequestDto pageRequest) {
         AdminService.PaginatedAuditLogs result =
                 adminService.getAuditLogs(userId, action, pageRequest);
@@ -69,6 +64,7 @@ public class AdminController {
      *
      * @return aggregated stats
      */
+    @Operation(summary = "Dashboard stats", description = "System-wide statistics: user/employee/site counts, today's attendance, payroll runs. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping("/dashboard/stats")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public SystemStatsDto getDashboardStats() {
@@ -83,10 +79,11 @@ public class AdminController {
      * @param request the HTTP request (for IP logging)
      * @return CSV file as downloadable response
      */
+    @Operation(summary = "Export data (CSV)", description = "Exports entity data as a downloadable CSV file. Entities: users, employees, sites. Roles: ADMIN, SUPER_ADMIN")
     @PostMapping("/export/{entity}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<byte[]> exportData(
-            @PathVariable String entity,
+            @Parameter(description = "Entity type: users, employees, or sites") @PathVariable String entity,
             @CurrentUser UserPrincipal principal,
             HttpServletRequest request) {
         String csv = adminService.exportData(
@@ -105,6 +102,7 @@ public class AdminController {
      *
      * @return current system config
      */
+    @Operation(summary = "Get system config", description = "Returns current system configuration entries (stored in Redis). Roles: SUPER_ADMIN")
     @GetMapping("/config")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public SystemConfigDto getSystemConfig() {
@@ -119,6 +117,7 @@ public class AdminController {
      * @param request the HTTP request (for IP logging)
      * @return the updated config
      */
+    @Operation(summary = "Update system config", description = "Updates system configuration entries. Audit logged. Roles: SUPER_ADMIN")
     @PutMapping("/config")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public SystemConfigDto updateSystemConfig(

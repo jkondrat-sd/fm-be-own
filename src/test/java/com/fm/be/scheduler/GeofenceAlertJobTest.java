@@ -11,16 +11,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -217,8 +220,8 @@ class GeofenceAlertJobTest {
         @Test
         @DisplayName("should scan all location keys")
         void scanGeofenceViolations_scansAllKeys() {
-            when(redisTemplate.keys("loc:*"))
-                    .thenReturn(Set.of("loc:" + employeeId));
+            Cursor<String> cursor = mockCursor(List.of("loc:" + employeeId));
+            when(redisTemplate.scan(any(ScanOptions.class))).thenReturn(cursor);
             when(employeeRepository.findById(employeeId))
                     .thenReturn(Optional.empty());
 
@@ -230,7 +233,8 @@ class GeofenceAlertJobTest {
         @Test
         @DisplayName("should handle null keys gracefully")
         void scanGeofenceViolations_nullKeys_doesNothing() {
-            when(redisTemplate.keys("loc:*")).thenReturn(null);
+            Cursor<String> cursor = mockCursor(Collections.emptyList());
+            when(redisTemplate.scan(any(ScanOptions.class))).thenReturn(cursor);
 
             geofenceAlertJob.scanGeofenceViolations();
 
@@ -240,12 +244,22 @@ class GeofenceAlertJobTest {
         @Test
         @DisplayName("should handle empty keys gracefully")
         void scanGeofenceViolations_emptyKeys_doesNothing() {
-            when(redisTemplate.keys("loc:*"))
-                    .thenReturn(Collections.emptySet());
+            Cursor<String> cursor = mockCursor(Collections.emptyList());
+            when(redisTemplate.scan(any(ScanOptions.class))).thenReturn(cursor);
 
             geofenceAlertJob.scanGeofenceViolations();
 
             verify(employeeRepository, never()).findById(any());
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Cursor<String> mockCursor(List<String> items) {
+        Iterator<String> iter = items.iterator();
+        Cursor<String> cursor = org.mockito.Mockito.mock(Cursor.class,
+                org.mockito.Mockito.withSettings().lenient());
+        when(cursor.hasNext()).thenAnswer(inv -> iter.hasNext());
+        when(cursor.next()).thenAnswer(inv -> iter.next());
+        return cursor;
     }
 }

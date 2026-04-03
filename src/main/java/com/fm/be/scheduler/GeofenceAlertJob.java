@@ -6,15 +6,18 @@ import com.fm.be.modules.notifications.NotificationService;
 import com.fm.be.modules.sites.SiteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -157,8 +160,17 @@ public class GeofenceAlertJob {
      */
     @org.springframework.scheduling.annotation.Scheduled(fixedRate = 120_000)
     public void scanGeofenceViolations() {
-        Set<String> keys = redisTemplate.keys(LOCATION_KEY_PREFIX + "*");
-        if (keys == null || keys.isEmpty()) {
+        List<String> keys = new ArrayList<>();
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(LOCATION_KEY_PREFIX + "*")
+                .count(500)
+                .build();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                keys.add(cursor.next());
+            }
+        }
+        if (keys.isEmpty()) {
             return;
         }
 

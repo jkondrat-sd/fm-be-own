@@ -8,6 +8,8 @@ import com.fm.be.modules.admin.AdminService;
 import com.fm.be.modules.users.dto.CreateUserDto;
 import com.fm.be.modules.users.dto.UpdateUserDto;
 import com.fm.be.modules.users.dto.UserResponseDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,19 +31,11 @@ import java.util.UUID;
 /**
  * REST controller for admin user management endpoints.
  * Restricted to ADMIN and SUPER_ADMIN roles.
- *
- * <p>Endpoints:</p>
- * <ul>
- *   <li>GET /v1/admin/users — List users (paginated)</li>
- *   <li>GET /v1/admin/users/{id} — Get user by ID</li>
- *   <li>POST /v1/admin/users — Create user</li>
- *   <li>PUT /v1/admin/users/{id} — Update user</li>
- *   <li>DELETE /v1/admin/users/{id} — Deactivate user</li>
- * </ul>
  */
 @RestController
 @RequestMapping("/v1/admin/users")
 @RequiredArgsConstructor
+@Tag(name = "Users", description = "Admin user management — CRUD, role assignment, deactivation")
 public class UserController {
 
     private final UserService userService;
@@ -53,6 +47,7 @@ public class UserController {
      * @param pageRequest pagination parameters
      * @return paginated list of users
      */
+    @Operation(summary = "List users", description = "Paginated list of all users. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ApiResponse<Object> listUsers(@Valid PageRequestDto pageRequest) {
@@ -66,6 +61,7 @@ public class UserController {
      * @param id the user UUID
      * @return the user data
      */
+    @Operation(summary = "Get user", description = "Retrieves user details by ID. Roles: ADMIN, SUPER_ADMIN")
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public UserResponseDto getUserById(@PathVariable UUID id) {
@@ -80,6 +76,8 @@ public class UserController {
      * @param request the HTTP request (for audit IP logging)
      * @return the created user
      */
+    @Operation(summary = "Create user", description = "Creates a new user with role assignment. Audit logged. Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "User created"))
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
@@ -105,6 +103,7 @@ public class UserController {
      * @param request the HTTP request (for audit IP logging)
      * @return the updated user
      */
+    @Operation(summary = "Update user", description = "Updates user fields (role, active status, etc.). Audit logged. Roles: ADMIN, SUPER_ADMIN")
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public UserResponseDto updateUser(
@@ -126,6 +125,8 @@ public class UserController {
      * @param principal the authenticated admin user
      * @param request the HTTP request (for audit IP logging)
      */
+    @Operation(summary = "Deactivate user", description = "Soft-deletes a user by setting isActive=false. Audit logged. Roles: ADMIN, SUPER_ADMIN",
+            responses = @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "User deactivated"))
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")

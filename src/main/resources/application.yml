@@ -32,6 +32,9 @@ spring:
         format_sql: false
         jdbc:
           time_zone: UTC
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
 
   # --- Flyway Database Migrations ---
   flyway:
@@ -111,8 +114,26 @@ app:
     max-pool-size: ${ASYNC_MAX_POOL:4}
     queue-capacity: ${ASYNC_QUEUE_CAPACITY:50}
 
+  # --- PII Encryption (Aadhaar, PAN) ---
+  encryption:
+    pii-key: ${PII_ENCRYPTION_KEY:}
+
   # --- Rate Limiting ---
   rate-limit:
     otp-requests-per-minute: 5
     location-updates-per-10s: 1
     default-requests-per-minute: 100
+
+# --- Springdoc OpenAPI ---
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+    display-request-duration: true
+    try-it-out-enabled: true
+  show-actuator: false
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json

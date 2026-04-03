@@ -17,6 +17,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -92,8 +95,8 @@ public class LocationService {
     @Scheduled(fixedRate = 300_000) // 5 minutes
     @Transactional
     public void flushLocationsToDatabase() {
-        Set<String> keys = redisTemplate.keys(LOCATION_KEY_PREFIX + "*");
-        if (keys == null || keys.isEmpty()) {
+        List<String> keys = scanLocationKeys();
+        if (keys.isEmpty()) {
             log.debug("No location keys to flush");
             return;
         }
@@ -220,9 +223,8 @@ public class LocationService {
         // the GeofenceAlertJob would maintain a Redis set of active alerts.
         List<GeofenceAlertDto> alerts = new ArrayList<>();
 
-        // Check all active employees with live location data
-        Set<String> keys = redisTemplate.keys(LOCATION_KEY_PREFIX + "*");
-        if (keys == null) {
+        List<String> keys = scanLocationKeys();
+        if (keys.isEmpty()) {
             return alerts;
         }
 
@@ -282,6 +284,24 @@ public class LocationService {
         }
 
         return alerts;
+    }
+
+    /**
+     * Uses SCAN instead of KEYS to find all location keys without
+     * blocking Redis on large datasets.
+     */
+    private List<String> scanLocationKeys() {
+        List<String> keys = new ArrayList<>();
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(LOCATION_KEY_PREFIX + "*")
+                .count(500)
+                .build();
+        try (Cursor<String> cursor = redisTemplate.scan(options)) {
+            while (cursor.hasNext()) {
+                keys.add(cursor.next());
+            }
+        }
+        return keys;
     }
 
     /** Builds a LiveLocationDto from Redis data for a given employee. */
