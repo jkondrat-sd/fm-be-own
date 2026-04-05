@@ -37,10 +37,10 @@ public class LocationHistory {
     @Column(name = "employee_id", nullable = false)
     private UUID employeeId;
 
-    @Column(name = "lat", nullable = false)
+    @Column(name = "latitude", nullable = false)
     private Double latitude;
 
-    @Column(name = "lng", nullable = false)
+    @Column(name = "longitude", nullable = false)
     private Double longitude;
 
     @Column

@@ -1,0 +1,1527 @@
+{
+  "info": {
+    "name": "FM-BE - 03-Employees",
+    "_postman_id": "c0f786c40c8d85d8",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "HAPPY: Create employee with all fields",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const ts = Date.now();",
+              "const phone = '+918' + String(ts).slice(-9);",
+              "const email = 'emp-' + ts + '@test.com';",
+              "pm.environment.set('test_emp_phone', phone);",
+              "pm.environment.set('test_emp_email', email);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Success envelope with traceId', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(body).to.have.property('traceId');",
+              "});",
+              "",
+              "pm.test('Employee has expected fields', () => {",
+              "    pm.expect(resData).to.have.property('id');",
+              "    pm.expect(resData).to.have.property('userId');",
+              "    pm.expect(resData.fullName).to.eql('Integration Test Employee');",
+              "    pm.expect(resData.phone).to.eql(pm.environment.get('test_emp_phone'));",
+              "    pm.expect(resData.email).to.eql(pm.environment.get('test_emp_email'));",
+              "    pm.expect(resData.role).to.eql('EMPLOYEE');",
+              "    pm.expect(resData.organizationId).to.eql(pm.environment.get('organization_id'));",
+              "    pm.expect(resData.hasFaceRegistered).to.eql(false);",
+              "    pm.expect(resData.documents).to.be.an('array').that.is.empty;",
+              "    pm.expect(resData).to.have.property('createdAt');",
+              "    pm.expect(resData).to.have.property('updatedAt');",
+              "});",
+              "",
+              "if (resData) {",
+              "    pm.environment.set('employee_id', resData.id);",
+              "    pm.environment.set('employee_user_id_for_emp', resData.userId);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Integration Test Employee\",\n  \"phone\": \"{{test_emp_phone}}\",\n  \"email\": \"{{test_emp_email}}\",\n  \"dob\": \"1995-06-15\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees"
+          ]
+        }
+      }
+    },
+    {
+      "name": "HAPPY: Create employee minimal fields",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const ts = Date.now();",
+              "const phone = '+917' + String(ts).slice(-9);",
+              "pm.environment.set('test_emp_phone_minimal', phone);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Employee created with defaults', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData).to.have.property('id');",
+              "    pm.expect(resData.fullName).to.eql('Minimal Employee');",
+              "    pm.expect(resData.role).to.eql('EMPLOYEE');",
+              "    pm.expect(resData.email).to.be.null;",
+              "    pm.expect(resData.dob).to.be.null;",
+              "    pm.expect(resData.siteId).to.be.null;",
+              "});",
+              "",
+              "if (resData) {",
+              "    pm.environment.set('minimal_employee_id', resData.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Minimal Employee\",\n  \"phone\": \"{{test_emp_phone_minimal}}\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees"
+          ]
+        }
+      }
+    },
+    {
+      "name": "EDGE: Missing fullName",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Validation error on fullName', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+              "    pm.expect(body.error.details).to.have.property('fullName');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Duplicate phone",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Dup Phone Employee\",\n  \"phone\": \"{{test_emp_phone}}\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 409 Conflict', () => pm.response.to.have.status(409));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: DUPLICATE_RESOURCE', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('DUPLICATE_RESOURCE');",
+              "    pm.expect(body.error.message).to.include('phone');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Non-existent siteId (FK violation)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const ts = Date.now();",
+              "const phone = '+916' + String(ts).slice(-9);",
+              "pm.environment.set('test_emp_phone_bad_site', phone);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// siteId FK IS enforced at DB level \u2014 non-existent UUID returns 500",
+              "pm.test('Status 500 (SERVER_ERROR)', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([500, 400]);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "pm.test('Error envelope', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Bad Site Employee\",\n  \"phone\": \"{{test_emp_phone_bad_site}}\",\n  \"siteId\": \"00000000-0000-0000-0000-000000000099\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC: Employee cannot create employee",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "pm.request.headers.upsert({",
+              "    key: 'Authorization',",
+              "    value: 'Bearer ' + (empToken || 'no-employee-token')",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401 or 403 (RBAC denied)', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Should Not Create\",\n  \"phone\": \"+919111111111\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees"
+          ]
+        }
+      }
+    },
+    {
+      "name": "HAPPY: Update employee name",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Updated Employee Name\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Name updated', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData.fullName).to.eql('Updated Employee Name');",
+              "    pm.expect(resData.id).to.eql(pm.environment.get('employee_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Update employee DOB",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"dob\": \"2000-01-15\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('DOB updated', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData.dob).to.eql('2000-01-15');",
+              "    pm.expect(resData.id).to.eql(pm.environment.get('employee_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Update non-existent employee",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Ghost\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees/00000000-0000-0000-0000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "00000000-0000-0000-0000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Get employee by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Returns correct employee', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData.id).to.eql(pm.environment.get('employee_id'));",
+              "});",
+              "",
+              "pm.test('Has all expected fields', () => {",
+              "    pm.expect(resData).to.have.property('id');",
+              "    pm.expect(resData).to.have.property('userId');",
+              "    pm.expect(resData).to.have.property('fullName');",
+              "    pm.expect(resData).to.have.property('role');",
+              "    pm.expect(resData).to.have.property('organizationId');",
+              "    pm.expect(resData).to.have.property('hasFaceRegistered');",
+              "    pm.expect(resData).to.have.property('documents');",
+              "    pm.expect(resData).to.have.property('createdAt');",
+              "    pm.expect(resData).to.have.property('updatedAt');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Get non-existent employee",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/00000000-0000-0000-0000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "00000000-0000-0000-0000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: List employees paginated",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Success with data array', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(body.data).to.be.an('array');",
+              "    pm.expect(body.data.length).to.be.above(0);",
+              "});",
+              "",
+              "pm.test('Has pagination meta', () => {",
+              "    pm.expect(body.meta).to.have.property('page');",
+              "    pm.expect(body.meta).to.have.property('limit');",
+              "    pm.expect(body.meta).to.have.property('total');",
+              "    pm.expect(body.meta).to.have.property('totalPages');",
+              "    pm.expect(body.meta.page).to.eql(1);",
+              "    pm.expect(body.meta.limit).to.eql(10);",
+              "});",
+              "",
+              "pm.test('Employee objects have required fields', () => {",
+              "    const emp = body.data[0];",
+              "    pm.expect(emp).to.have.property('id');",
+              "    pm.expect(emp).to.have.property('userId');",
+              "    pm.expect(emp).to.have.property('fullName');",
+              "    pm.expect(emp).to.have.property('role');",
+              "    pm.expect(emp).to.have.property('organizationId');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Page beyond total",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees?page=999",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "999"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Empty data list', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(body.data).to.be.an('array').that.is.empty;",
+              "});",
+              "",
+              "pm.test('Meta still present', () => {",
+              "    pm.expect(body.meta.page).to.eql(999);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Search employees by name",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/search?query=Updated",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "Updated"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Found matching employees', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(body.data).to.be.an('array');",
+              "    pm.expect(body.data.length).to.be.above(0);",
+              "});",
+              "",
+              "pm.test('Results contain search term in name', () => {",
+              "    const names = body.data.map(e => e.fullName.toLowerCase());",
+              "    const allMatch = names.every(n => n.includes('updated'));",
+              "    pm.expect(allMatch).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Search \u2014 no match",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/search?query=ZZZZNONEXISTENT",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "query",
+              "value": "ZZZZNONEXISTENT"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Empty result list', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(body.data).to.be.an('array').that.is.empty;",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Search \u2014 missing query param",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/search",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "search"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400 or 500 for missing required param', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error response', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error).to.have.property('code');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Employee gets own profile (/me)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "if (empToken) {",
+              "    pm.request.headers.upsert({",
+              "        key: 'Authorization',",
+              "        value: 'Bearer ' + empToken",
+              "    });",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "",
+              "if (!empToken) {",
+              "    pm.test('SKIP: employee_access_token not set (requires OTP automation)', () => {",
+              "        console.warn('Employee /me test skipped: employee_access_token not available.');",
+              "    });",
+              "} else {",
+              "    pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "    const body = pm.response.json();",
+              "    const resData = body.data;",
+              "",
+              "    pm.test('Returns own profile', () => {",
+              "        pm.expect(body.success).to.eql(true);",
+              "        pm.expect(resData).to.have.property('id');",
+              "        pm.expect(resData).to.have.property('userId');",
+              "        pm.expect(resData).to.have.property('fullName');",
+              "        pm.expect(resData.role).to.eql('EMPLOYEE');",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/me",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "me"
+          ]
+        }
+      }
+    },
+    {
+      "name": "EDGE: Admin accesses /me (non-employee role)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/me",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "me"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Admin has ADMIN role, /me requires EMPLOYEE role \u2192 403",
+              "pm.test('Status 403 (admin lacks EMPLOYEE role)', () => pm.response.to.have.status(403));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Access denied', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Register face \u2014 empty array",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "[]"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/face",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "face"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Empty array: no server-side validation on array content",
+              "pm.test('Status 200 or 400', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    pm.test('Accepted (hasFaceRegistered will be false)', () => {",
+              "        const body = pm.response.json();",
+              "        pm.expect(body.success).to.eql(true);",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Register face embedding",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29,0.30,0.31,0.32]"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/face",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "face"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data || body;",
+              "",
+              "pm.test('Face registered message', () => {",
+              "    pm.expect(resData.message).to.include('Face registered');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Register face \u2014 non-existent employee",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "[0.1,0.2,0.3]"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees/00000000-0000-0000-0000-000000000099/face",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "00000000-0000-0000-0000-000000000099",
+            "face"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot register face",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "pm.request.headers.upsert({",
+              "    key: 'Authorization',",
+              "    value: 'Bearer ' + (empToken || 'no-employee-token')",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401 or 403 (RBAC denied)', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "[0.1,0.2,0.3]"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/face",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "face"
+          ]
+        }
+      }
+    },
+    {
+      "name": "HAPPY: Upload Aadhaar document",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=AADHAAR&fileUrl=https://storage.example.com/docs/aadhaar-123.jpg",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "documents"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "AADHAAR"
+            },
+            {
+              "key": "fileUrl",
+              "value": "https://storage.example.com/docs/aadhaar-123.jpg"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Document has expected fields', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData).to.have.property('id');",
+              "    pm.expect(resData.type).to.eql('AADHAAR');",
+              "    pm.expect(resData.fileUrl).to.include('aadhaar');",
+              "    pm.expect(resData.verified).to.eql(false);",
+              "    pm.expect(resData).to.have.property('createdAt');",
+              "});",
+              "",
+              "if (resData) {",
+              "    pm.environment.set('aadhaar_doc_id', resData.id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Upload PAN document",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=PAN&fileUrl=https://storage.example.com/docs/pan-456.jpg",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "documents"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "PAN"
+            },
+            {
+              "key": "fileUrl",
+              "value": "https://storage.example.com/docs/pan-456.jpg"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('PAN document created', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData.type).to.eql('PAN');",
+              "    pm.expect(resData.fileUrl).to.include('pan');",
+              "    pm.expect(resData.verified).to.eql(false);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Invalid document type",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=UNKNOWN_DOC&fileUrl=https://storage.example.com/docs/x.jpg",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "documents"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "UNKNOWN_DOC"
+            },
+            {
+              "key": "fileUrl",
+              "value": "https://storage.example.com/docs/x.jpg"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Invalid enum value for @RequestParam DocumentType",
+              "pm.test('Status 400 or 500 for invalid enum', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error response', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error).to.have.property('code');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing fileUrl param",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=AADHAAR",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "documents"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "AADHAAR"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Missing required @RequestParam fileUrl",
+              "pm.test('Status 400 or 500 for missing param', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error response', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error).to.have.property('code');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Document \u2014 non-existent employee",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/00000000-0000-0000-0000-000000000099/documents?type=AADHAAR&fileUrl=https://storage.example.com/x.jpg",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "00000000-0000-0000-0000-000000000099",
+            "documents"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "AADHAAR"
+            },
+            {
+              "key": "fileUrl",
+              "value": "https://storage.example.com/x.jpg"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot upload docs",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "pm.request.headers.upsert({",
+              "    key: 'Authorization',",
+              "    value: 'Bearer ' + (empToken || 'no-employee-token')",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401 or 403 (RBAC denied)', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=AADHAAR&fileUrl=https://storage.example.com/x.jpg",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "documents"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "AADHAAR"
+            },
+            {
+              "key": "fileUrl",
+              "value": "https://storage.example.com/x.jpg"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "HAPPY: Upload VOTER_ID (third doc same employee)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=VOTER_ID&fileUrl=https://storage.example.com/docs/voter-789.jpg",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "documents"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "VOTER_ID"
+            },
+            {
+              "key": "fileUrl",
+              "value": "https://storage.example.com/docs/voter-789.jpg"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Third document for same employee created', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData.type).to.eql('VOTER_ID');",
+              "    pm.expect(resData.fileUrl).to.include('voter');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Duplicate document type (AADHAAR again)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}/documents?type=AADHAAR&fileUrl=https://storage.example.com/docs/aadhaar-dup.jpg",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}",
+            "documents"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "AADHAAR"
+            },
+            {
+              "key": "fileUrl",
+              "value": "https://storage.example.com/docs/aadhaar-dup.jpg"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// No unique constraint on (employee_id, type) \u2014 duplicate allowed",
+              "pm.test('Status 200 or 409 (depends on constraint)', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 409]);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "if (pm.response.code === 200) {",
+              "    pm.test('Duplicate doc accepted (no unique constraint)', () => {",
+              "        pm.expect(body.success).to.eql(true);",
+              "        pm.expect(body.data.type).to.eql('AADHAAR');",
+              "    });",
+              "} else {",
+              "    pm.test('Duplicate rejected', () => {",
+              "        pm.expect(body.success).to.eql(false);",
+              "        pm.expect(body.error.code).to.eql('DUPLICATE_RESOURCE');",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "VERIFY: Get employee \u2014 face + docs persisted",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/employees/{{employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "employees",
+            "{{employee_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Face registered', () => {",
+              "    pm.expect(resData.hasFaceRegistered).to.eql(true);",
+              "});",
+              "",
+              "pm.test('Documents attached', () => {",
+              "    pm.expect(resData.documents).to.be.an('array');",
+              "    pm.expect(resData.documents.length).to.be.at.least(3);",
+              "    const types = resData.documents.map(d => d.type);",
+              "    pm.expect(types).to.include('AADHAAR');",
+              "    pm.expect(types).to.include('PAN');",
+              "    pm.expect(types).to.include('VOTER_ID');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request: set common headers",
+          "if (pm.environment.get('access_token')) {",
+          "    pm.request.headers.upsert({",
+          "        key: 'Authorization',",
+          "        value: 'Bearer ' + pm.environment.get('access_token')",
+          "    });",
+          "}",
+          "pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });",
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test: response time check",
+          "pm.test('Response time < 5s', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

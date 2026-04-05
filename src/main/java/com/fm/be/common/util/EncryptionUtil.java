@@ -32,9 +32,19 @@ public class EncryptionUtil {
     private final SecureRandom secureRandom = new SecureRandom();
 
     public EncryptionUtil(
-            @Value("${app.encryption.pii-key:#{null}}") String base64Key) {
-        if (base64Key != null && !base64Key.isBlank()) {
-            byte[] keyBytes = Base64.getDecoder().decode(base64Key);
+            @Value("${app.encryption.pii-key:#{null}}") String keyString) {
+        if (keyString != null && !keyString.isBlank()) {
+            byte[] keyBytes;
+            try {
+                keyBytes = Base64.getDecoder().decode(keyString);
+            } catch (IllegalArgumentException e) {
+                // For local dev convenience: if not valid base64, check if it's exactly a 32-byte raw string
+                keyBytes = keyString.getBytes(StandardCharsets.UTF_8);
+                if (keyBytes.length != 32) {
+                    throw new IllegalArgumentException(
+                            "PII key must be a 32-byte Base64 string or a raw 32-byte string, but got invalid format/length.", e);
+                }
+            }
             this.keySpec = new SecretKeySpec(keyBytes, "AES");
         } else {
             this.keySpec = null;

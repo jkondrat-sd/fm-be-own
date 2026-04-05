@@ -1,0 +1,1102 @@
+{
+  "info": {
+    "name": "FM-BE - 01-Auth",
+    "_postman_id": "4369683b321c1b52",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "HAPPY: Admin Login (email/password)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Response envelope has success=true', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "});",
+              "",
+              "pm.test('Has traceId', () => {",
+              "    pm.expect(body).to.have.property('traceId');",
+              "});",
+              "",
+              "pm.test('Has access token', () => {",
+              "    pm.expect(resData).to.have.property('accessToken');",
+              "    pm.expect(resData.accessToken).to.be.a('string').and.not.empty;",
+              "});",
+              "",
+              "pm.test('Has refresh token', () => {",
+              "    pm.expect(resData).to.have.property('refreshToken');",
+              "    pm.expect(resData.refreshToken).to.be.a('string').and.not.empty;",
+              "});",
+              "",
+              "pm.test('Has user info with correct role', () => {",
+              "    pm.expect(resData).to.have.property('userId');",
+              "    pm.expect(resData).to.have.property('role');",
+              "    pm.expect(resData.role).to.eql('ADMIN');",
+              "    pm.expect(resData).to.have.property('organizationId');",
+              "});",
+              "",
+              "// Store tokens for subsequent requests",
+              "if (resData) {",
+              "    pm.environment.set('access_token', resData.accessToken);",
+              "    pm.environment.set('admin_access_token', resData.accessToken);",
+              "    pm.environment.set('refresh_token', resData.refreshToken);",
+              "    pm.environment.set('admin_refresh_token', resData.refreshToken);",
+              "    pm.environment.set('admin_user_id', resData.userId);",
+              "    if (resData.organizationId) pm.environment.set('organization_id', resData.organizationId);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: OTP Request (valid phone)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{employee_phone}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/otp/request",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "request"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Success envelope', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "});",
+              "",
+              "pm.test('OTP sent message', () => {",
+              "    pm.expect(resData.message).to.include('OTP');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: OTP Verify (valid)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Request a fresh OTP so it's in Redis",
+              "pm.sendRequest({",
+              "    url: pm.environment.get('base_url') + '/v1/auth/otp/request',",
+              "    method: 'POST',",
+              "    header: { 'Content-Type': 'application/json' },",
+              "    body: {",
+              "        mode: 'raw',",
+              "        raw: JSON.stringify({ phone: pm.environment.get('employee_phone') })",
+              "    }",
+              "}, function(err, res) {",
+              "    // OTP is now in Redis; test runner must set otp_code env var",
+              "    // via: redis-cli GET otp:<phone> or from server logs",
+              "    console.log('OTP requested. Set otp_code env var from Redis/logs.');",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const otpCode = pm.environment.get('otp_code');",
+              "",
+              "if (!otpCode) {",
+              "    pm.test('SKIP: otp_code not set \u2014 set from Redis (otp:<phone>) or server logs', () => {",
+              "        console.warn('OTP verify test skipped: otp_code env var not set.');",
+              "    });",
+              "} else {",
+              "    pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "    const body = pm.response.json();",
+              "    const resData = body.data;",
+              "",
+              "    pm.test('Success envelope', () => {",
+              "        pm.expect(body.success).to.eql(true);",
+              "    });",
+              "",
+              "    pm.test('Has tokens and user info', () => {",
+              "        pm.expect(resData).to.have.property('accessToken');",
+              "        pm.expect(resData).to.have.property('refreshToken');",
+              "        pm.expect(resData).to.have.property('userId');",
+              "        pm.expect(resData).to.have.property('role');",
+              "        pm.expect(resData.role).to.eql('EMPLOYEE');",
+              "    });",
+              "",
+              "    // Store employee tokens for RBAC tests",
+              "    if (resData && resData.accessToken) {",
+              "        pm.environment.set('employee_access_token', resData.accessToken);",
+              "        pm.environment.set('employee_refresh_token', resData.refreshToken);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{employee_phone}}\",\n  \"otp\": \"{{otp_code}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/otp/verify",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "verify"
+          ]
+        }
+      }
+    },
+    {
+      "name": "EDGE: OTP Verify \u2014 wrong OTP",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{employee_phone}}\",\n  \"otp\": \"000000\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/otp/verify",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "verify"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: AUTH_INVALID_OTP', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('AUTH_INVALID_OTP');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: OTP Verify \u2014 non-existent phone",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+919999999999\",\n  \"otp\": \"123456\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/otp/verify",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "verify"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: AUTH_INVALID_OTP', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('AUTH_INVALID_OTP');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: OTP Verify \u2014 empty body",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/otp/verify",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "verify"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Validation error with field details', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+              "    pm.expect(body.error.details).to.have.property('phone');",
+              "    pm.expect(body.error.details).to.have.property('otp');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Login \u2014 wrong password",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"WrongPassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: AUTH_INVALID_CREDENTIALS', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('AUTH_INVALID_CREDENTIALS');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Login \u2014 non-existent email",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"nobody@test.com\",\n  \"password\": \"SomePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: AUTH_INVALID_CREDENTIALS', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('AUTH_INVALID_CREDENTIALS');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Login \u2014 empty body",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Validation error with field details', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+              "    pm.expect(body.error.details).to.have.property('email');",
+              "    pm.expect(body.error.details).to.have.property('password');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Login \u2014 invalid email format",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"not-an-email\",\n  \"password\": \"SomePassword123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Validation error on email', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+              "    pm.expect(body.error.details).to.have.property('email');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Login \u2014 inactive user",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Create a temp user with unique email, then deactivate them",
+              "const baseUrl = pm.environment.get('base_url');",
+              "const adminToken = pm.environment.get('admin_access_token');",
+              "const orgId = pm.environment.get('organization_id');",
+              "const inactiveEmail = 'inactive-' + Date.now() + '@test.com';",
+              "pm.environment.set('inactive_test_email', inactiveEmail);",
+              "",
+              "pm.sendRequest({",
+              "    url: baseUrl + '/v1/admin/users',",
+              "    method: 'POST',",
+              "    header: {",
+              "        'Authorization': 'Bearer ' + adminToken,",
+              "        'Content-Type': 'application/json'",
+              "    },",
+              "    body: {",
+              "        mode: 'raw',",
+              "        raw: JSON.stringify({",
+              "            email: inactiveEmail,",
+              "            password: 'Inactive@123456',",
+              "            role: 'ADMIN',",
+              "            organizationId: orgId",
+              "        })",
+              "    }",
+              "}, function(err, createRes) {",
+              "    const createBody = createRes.json();",
+              "    if (createBody.success && createBody.data) {",
+              "        const userId = createBody.data.id;",
+              "        pm.environment.set('inactive_test_user_id', userId);",
+              "",
+              "        // Deactivate the user",
+              "        pm.sendRequest({",
+              "            url: baseUrl + '/v1/admin/users/' + userId,",
+              "            method: 'PUT',",
+              "            header: {",
+              "                'Authorization': 'Bearer ' + adminToken,",
+              "                'Content-Type': 'application/json'",
+              "            },",
+              "            body: {",
+              "                mode: 'raw',",
+              "                raw: JSON.stringify({ isActive: false })",
+              "            }",
+              "        }, function(err2, updateRes) {",
+              "            console.log('Temp user created and deactivated: ' + userId);",
+              "        });",
+              "    }",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401 or 403 for inactive user', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error indicates deactivation', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error).to.have.property('code');",
+              "});",
+              "",
+              "// Cleanup: delete the temp user",
+              "const baseUrl = pm.environment.get('base_url');",
+              "const adminToken = pm.environment.get('admin_access_token');",
+              "const tempId = pm.environment.get('inactive_test_user_id');",
+              "if (tempId) {",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/v1/admin/users/' + tempId,",
+              "        method: 'DELETE',",
+              "        header: { 'Authorization': 'Bearer ' + adminToken }",
+              "    }, function() {",
+              "        pm.environment.unset('inactive_test_user_id');",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{inactive_test_email}}\",\n  \"password\": \"Inactive@123456\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "EDGE: OTP Request \u2014 empty phone",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/otp/request",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "request"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Validation error on phone', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+              "    pm.expect(body.error.details).to.have.property('phone');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: OTP Request \u2014 invalid phone format",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"abc123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/otp/request",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "request"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Validation error on phone format', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+              "    pm.expect(body.error.details).to.have.property('phone');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: OTP Request \u2014 missing phone field",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/otp/request",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "request"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Validation error \u2014 phone required', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+              "    pm.expect(body.error.details).to.have.property('phone');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Token Refresh",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{admin_refresh_token}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/refresh",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "refresh"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Success envelope', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "});",
+              "",
+              "pm.test('New access token returned', () => {",
+              "    pm.expect(resData).to.have.property('accessToken');",
+              "    pm.expect(resData.accessToken).to.be.a('string').and.not.empty;",
+              "});",
+              "",
+              "pm.test('User info preserved', () => {",
+              "    pm.expect(resData).to.have.property('userId');",
+              "    pm.expect(resData).to.have.property('role');",
+              "    pm.expect(resData.role).to.eql('ADMIN');",
+              "});",
+              "",
+              "// Update stored tokens",
+              "if (resData) {",
+              "    pm.environment.set('access_token', resData.accessToken);",
+              "    pm.environment.set('admin_access_token', resData.accessToken);",
+              "    if (resData.refreshToken) {",
+              "        pm.environment.set('refresh_token', resData.refreshToken);",
+              "        pm.environment.set('admin_refresh_token', resData.refreshToken);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Refresh \u2014 invalid token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"invalid-garbage-token\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/refresh",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "refresh"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401', () => pm.response.to.have.status(401));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: AUTH_TOKEN_EXPIRED', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('AUTH_TOKEN_EXPIRED');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Refresh \u2014 empty token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/refresh",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "refresh"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Validation error on refreshToken', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+              "    pm.expect(body.error.details).to.have.property('refreshToken');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Logout (valid)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Login fresh to get a disposable refresh token for logout test",
+              "pm.sendRequest({",
+              "    url: pm.environment.get('base_url') + '/v1/auth/login',",
+              "    method: 'POST',",
+              "    header: { 'Content-Type': 'application/json' },",
+              "    body: {",
+              "        mode: 'raw',",
+              "        raw: JSON.stringify({",
+              "            email: pm.environment.get('admin_email'),",
+              "            password: pm.environment.get('admin_password')",
+              "        })",
+              "    }",
+              "}, function(err, res) {",
+              "    const resBody = res.json();",
+              "    if (resBody.success && resBody.data) {",
+              "        pm.environment.set('logout_test_refresh_token', resBody.data.refreshToken);",
+              "        pm.environment.set('logout_test_access_token', resBody.data.accessToken);",
+              "    }",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Success with logged out message', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(body.data.message).to.include('Logged out');",
+              "});",
+              "",
+              "pm.environment.unset('logout_test_refresh_token');",
+              "pm.environment.unset('logout_test_access_token');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{logout_test_access_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{logout_test_refresh_token}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/logout",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "logout"
+          ]
+        }
+      }
+    },
+    {
+      "name": "EDGE: Logout \u2014 already-used token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"already-deleted-token-value\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/logout",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "logout"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Logout with already-deleted token is idempotent (returns 200)",
+              "pm.test('Status 200 (idempotent)', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Success response', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: OTP Rate Limit (6th request \u2192 429)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Send 5 OTP requests to fill the rate limit bucket",
+              "const baseUrl = pm.environment.get('base_url');",
+              "const phone = '+912222222222';",
+              "let completed = 0;",
+              "",
+              "function sendOtp(callback) {",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/v1/auth/otp/request',",
+              "        method: 'POST',",
+              "        header: { 'Content-Type': 'application/json' },",
+              "        body: {",
+              "            mode: 'raw',",
+              "            raw: JSON.stringify({ phone: phone })",
+              "        }",
+              "    }, function(err, res) {",
+              "        completed++;",
+              "        if (completed < 5) {",
+              "            sendOtp(callback);",
+              "        } else {",
+              "            callback();",
+              "        }",
+              "    });",
+              "}",
+              "",
+              "sendOtp(function() {",
+              "    console.log('Sent 5 OTP requests to fill rate limit');",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 429 (rate limited)', () => pm.response.to.have.status(429));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: RATE_LIMITED', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('RATE_LIMITED');",
+              "});",
+              "",
+              "pm.test('Has retryAfterSeconds in details', () => {",
+              "    pm.expect(body.error.details).to.have.property('retryAfterSeconds');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+912222222222\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/auth/otp/request",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "otp",
+            "request"
+          ]
+        }
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request: set common headers",
+          "if (pm.environment.get('access_token')) {",
+          "    pm.request.headers.upsert({",
+          "        key: 'Authorization',",
+          "        value: 'Bearer ' + pm.environment.get('access_token')",
+          "    });",
+          "}",
+          "pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });",
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test: response time check",
+          "pm.test('Response time < 5s', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

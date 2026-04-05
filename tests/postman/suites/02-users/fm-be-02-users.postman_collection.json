@@ -1,0 +1,1093 @@
+{
+  "info": {
+    "name": "FM-BE - 02-Users",
+    "_postman_id": "41032b6a39e56229",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "HAPPY: Create user with phone (EMPLOYEE)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Generate a unique phone to avoid conflicts from previous runs (soft-delete keeps unique constraint)",
+              "const suffix = String(Date.now()).slice(-9);",
+              "const phone = '+919' + suffix;",
+              "pm.environment.set('test_employee_phone', phone);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Success envelope', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "});",
+              "",
+              "pm.test('User has expected fields', () => {",
+              "    pm.expect(resData).to.have.property('id');",
+              "    pm.expect(resData.phone).to.eql(pm.environment.get('test_employee_phone'));",
+              "    pm.expect(resData.role).to.eql('EMPLOYEE');",
+              "    pm.expect(resData.active).to.eql(true);",
+              "    pm.expect(resData).to.have.property('organizationId');",
+              "    pm.expect(resData).to.have.property('createdAt');",
+              "    pm.expect(resData).to.have.property('updatedAt');",
+              "});",
+              "",
+              "// Store for later suites",
+              "if (resData) {",
+              "    pm.environment.set('employee_user_id', resData.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{test_employee_phone}}\",\n  \"role\": \"EMPLOYEE\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "HAPPY: Create user with email+password (ADMIN)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Generate a unique email to avoid conflicts from previous runs",
+              "const ts = Date.now();",
+              "const email = 'testadmin-' + ts + '@test.com';",
+              "pm.environment.set('test_admin_email', email);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('User has expected fields', () => {",
+              "    pm.expect(resData.email).to.eql(pm.environment.get('test_admin_email'));",
+              "    pm.expect(resData.role).to.eql('ADMIN');",
+              "    pm.expect(resData.active).to.eql(true);",
+              "    pm.expect(resData.phone).to.be.null;",
+              "});",
+              "",
+              "// Store temp user ID for update/delete tests",
+              "if (resData) {",
+              "    pm.environment.set('test_user_id', resData.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{test_admin_email}}\",\n  \"password\": \"TestAdmin@123456\",\n  \"role\": \"ADMIN\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "EDGE: Duplicate email",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"Test@123456\",\n  \"role\": \"ADMIN\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 409 Conflict', () => pm.response.to.have.status(409));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: DUPLICATE_RESOURCE', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('DUPLICATE_RESOURCE');",
+              "    pm.expect(body.error.message).to.include('email');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Duplicate phone",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"{{test_employee_phone}}\",\n  \"role\": \"EMPLOYEE\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 409 Conflict', () => pm.response.to.have.status(409));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: DUPLICATE_RESOURCE', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('DUPLICATE_RESOURCE');",
+              "    pm.expect(body.error.message).to.include('phone');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing organizationId",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+919333333333\",\n  \"role\": \"EMPLOYEE\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', () => pm.response.to.have.status(400));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Validation error on organizationId', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('VALIDATION_ERROR');",
+              "    pm.expect(body.error.details).to.have.property('organizationId');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Invalid role value",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+919444444444\",\n  \"role\": \"HACKER\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400 or 500 for invalid role', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error response', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error).to.have.property('code');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot create user",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "pm.request.headers.upsert({",
+              "    key: 'Authorization',",
+              "    value: 'Bearer ' + (empToken || 'no-employee-token')",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401 or 403 (RBAC denied)', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"+919555555555\",\n  \"role\": \"EMPLOYEE\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "HAPPY: List users (default pagination)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Success with data array', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(body.data).to.be.an('array');",
+              "    pm.expect(body.data.length).to.be.above(0);",
+              "});",
+              "",
+              "pm.test('Has pagination meta', () => {",
+              "    pm.expect(body.meta).to.have.property('page');",
+              "    pm.expect(body.meta).to.have.property('limit');",
+              "    pm.expect(body.meta).to.have.property('total');",
+              "    pm.expect(body.meta).to.have.property('totalPages');",
+              "    pm.expect(body.meta.page).to.eql(1);",
+              "    pm.expect(body.meta.limit).to.eql(20);",
+              "});",
+              "",
+              "pm.test('User objects have required fields', () => {",
+              "    const user = body.data[0];",
+              "    pm.expect(user).to.have.property('id');",
+              "    pm.expect(user).to.have.property('role');",
+              "    pm.expect(user).to.have.property('organizationId');",
+              "    pm.expect(user).to.have.property('createdAt');",
+              "    pm.expect(user).to.have.property('active');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: List users (custom page/limit)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users?page=1&limit=2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Respects custom limit', () => {",
+              "    pm.expect(body.data.length).to.be.at.most(2);",
+              "    pm.expect(body.meta.limit).to.eql(2);",
+              "    pm.expect(body.meta.page).to.eql(1);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Page beyond total",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users?page=999",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "999"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Empty data list', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(body.data).to.be.an('array').that.is.empty;",
+              "});",
+              "",
+              "pm.test('Meta still present', () => {",
+              "    pm.expect(body.meta.page).to.eql(999);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot list users",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "pm.request.headers.upsert({",
+              "    key: 'Authorization',",
+              "    value: 'Bearer ' + (empToken || 'no-employee-token')",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401 or 403 (RBAC denied)', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "HAPPY: Get user by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/{{employee_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "{{employee_user_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Returns correct user', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData.id).to.eql(pm.environment.get('employee_user_id'));",
+              "});",
+              "",
+              "pm.test('User has all fields', () => {",
+              "    pm.expect(resData).to.have.property('id');",
+              "    pm.expect(resData).to.have.property('role');",
+              "    pm.expect(resData).to.have.property('active');",
+              "    pm.expect(resData).to.have.property('organizationId');",
+              "    pm.expect(resData).to.have.property('createdAt');",
+              "    pm.expect(resData).to.have.property('updatedAt');",
+              "    pm.expect(resData).to.have.property('preferredLang');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Get non-existent user",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/00000000-0000-0000-0000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "00000000-0000-0000-0000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Get user \u2014 invalid UUID format",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/not-a-valid-uuid",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "not-a-valid-uuid"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400 or 500 for invalid UUID', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error response', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error).to.have.property('code');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Update user role",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"SUPERVISOR\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/{{test_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "{{test_user_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('Role updated to SUPERVISOR', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData.role).to.eql('SUPERVISOR');",
+              "    pm.expect(resData.id).to.eql(pm.environment.get('test_user_id'));",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Deactivate user",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": false\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/{{test_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "{{test_user_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', () => pm.response.to.have.status(200));",
+              "",
+              "const body = pm.response.json();",
+              "const resData = body.data;",
+              "",
+              "pm.test('User deactivated', () => {",
+              "    pm.expect(body.success).to.eql(true);",
+              "    pm.expect(resData.active).to.eql(false);",
+              "});",
+              "",
+              "// Reactivate for subsequent tests",
+              "const baseUrl = pm.environment.get('base_url');",
+              "const adminToken = pm.environment.get('admin_access_token');",
+              "pm.sendRequest({",
+              "    url: baseUrl + '/v1/admin/users/' + pm.environment.get('test_user_id'),",
+              "    method: 'PUT',",
+              "    header: {",
+              "        'Authorization': 'Bearer ' + adminToken,",
+              "        'Content-Type': 'application/json'",
+              "    },",
+              "    body: { mode: 'raw', raw: JSON.stringify({ isActive: true }) }",
+              "}, function() {});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Update non-existent user",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"SUPERVISOR\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/00000000-0000-0000-0000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "00000000-0000-0000-0000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Update with duplicate email",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{admin_email}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/{{test_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "{{test_user_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 409 for duplicate email', () => pm.response.to.have.status(409));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: DUPLICATE_RESOURCE', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('DUPLICATE_RESOURCE');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Delete user",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/{{test_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "{{test_user_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204 No Content', () => pm.response.to.have.status(204));",
+              "",
+              "pm.environment.unset('test_user_id');"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Delete non-existent user",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/00000000-0000-0000-0000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "00000000-0000-0000-0000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', () => pm.response.to.have.status(404));",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Error: RESOURCE_NOT_FOUND', () => {",
+              "    pm.expect(body.success).to.eql(false);",
+              "    pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Delete self (temp admin)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Create a temp admin with unique email, login as them, then attempt self-delete",
+              "const baseUrl = pm.environment.get('base_url');",
+              "const adminToken = pm.environment.get('admin_access_token');",
+              "const orgId = pm.environment.get('organization_id');",
+              "const selfDeleteEmail = 'self-delete-' + Date.now() + '@test.com';",
+              "",
+              "pm.sendRequest({",
+              "    url: baseUrl + '/v1/admin/users',",
+              "    method: 'POST',",
+              "    header: {",
+              "        'Authorization': 'Bearer ' + adminToken,",
+              "        'Content-Type': 'application/json'",
+              "    },",
+              "    body: {",
+              "        mode: 'raw',",
+              "        raw: JSON.stringify({",
+              "            email: selfDeleteEmail,",
+              "            password: 'SelfDelete@123',",
+              "            role: 'ADMIN',",
+              "            organizationId: orgId",
+              "        })",
+              "    }",
+              "}, function(err, createRes) {",
+              "    const createBody = createRes.json();",
+              "",
+              "    if (createBody.success && createBody.data) {",
+              "        const userId = createBody.data.id;",
+              "        pm.environment.set('self_delete_user_id', userId);",
+              "",
+              "        // Login as the temp admin",
+              "        pm.sendRequest({",
+              "            url: baseUrl + '/v1/auth/login',",
+              "            method: 'POST',",
+              "            header: { 'Content-Type': 'application/json' },",
+              "            body: {",
+              "                mode: 'raw',",
+              "                raw: JSON.stringify({",
+              "                    email: selfDeleteEmail,",
+              "                    password: 'SelfDelete@123'",
+              "                })",
+              "            }",
+              "        }, function(err2, loginRes) {",
+              "            const loginBody = loginRes.json();",
+              "            if (loginBody.success && loginBody.data) {",
+              "                pm.environment.set('self_delete_token', loginBody.data.accessToken);",
+              "                pm.request.headers.upsert({",
+              "                    key: 'Authorization',",
+              "                    value: 'Bearer ' + loginBody.data.accessToken",
+              "                });",
+              "            }",
+              "        });",
+              "    }",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Self-delete returns 204 (API allows it)",
+              "pm.test('Status 204 or 400/422 (self-delete behavior)', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([204, 400, 422]);",
+              "});",
+              "",
+              "pm.environment.unset('self_delete_user_id');",
+              "pm.environment.unset('self_delete_token');",
+              "pm.environment.unset('self_delete_user_exists');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{self_delete_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/{{self_delete_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "{{self_delete_user_id}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RBAC: Employee cannot delete user",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "pm.request.headers.upsert({",
+              "    key: 'Authorization',",
+              "    value: 'Bearer ' + (empToken || 'no-employee-token')",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401 or 403 (RBAC denied)', () => {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/users/{{employee_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "users",
+            "{{employee_user_id}}"
+          ]
+        }
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request: set common headers",
+          "if (pm.environment.get('access_token')) {",
+          "    pm.request.headers.upsert({",
+          "        key: 'Authorization',",
+          "        value: 'Bearer ' + pm.environment.get('access_token')",
+          "    });",
+          "}",
+          "pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });",
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test: response time check",
+          "pm.test('Response time < 5s', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

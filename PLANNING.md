@@ -86,9 +86,9 @@ All V1 endpoint development and unit testing (85%+ coverage) is complete. This i
 ### 3.1 Testing Infrastructure
 
 **Tool**: Postman Collections + Newman CLI runner  
-**Location**: `tests/postman/`  
+**Location**: `tests/postman/suites/` (Organized by suite-specific folders)  
 **Environment**: `fm-be-dev.postman_environment.json`  
-**Collection**: `fm-be-api-tests.postman_collection.json`  
+**Runner**: `scripts/run-api-tests.sh` (Manages sequential execution and environment persistence)
 **Reports**: `tests/postman/reports/` (git-ignored)
 
 ### 3.2 Test Suite Execution Order
@@ -765,21 +765,22 @@ Every test validates:
 
 ---
 
-## 6. Agent Spawning Strategy for Collection Creation
+### Strategy for Suite Creation
 
 Each TASK in `TASK.md` (TASK-3.x through TASK-3.15) maps to one Postman suite. Agents should:
 
-1. Read `PLANNING.md` for the exact test cases and expected responses
-2. Read the corresponding controller + DTO source files for precise request/response shapes
-3. Add requests to `tests/postman/fm-be-api-tests.postman_collection.json`
-4. Include pre-request scripts for token management and environment variable capture
-5. Include test assertions matching the standard defined in §3.5
+1. Read `PLANNING.md` for the exact test cases and expected responses.
+2. Read the corresponding controller + DTO source files for precise request/response shapes.
+3. Create a new Postman collection file at `tests/postman/suites/<suite-name>/fm-be-<suite-name>.postman_collection.json`.
+4. Include pre-request scripts for token management and environment variable capture.
+5. Include test assertions matching the standard defined in §3.5.
 
-### Parallel vs Sequential
+### Suite Organization
 
-- **Collection writing** can be parallelized (agents write to separate JSON files per suite)
-- **Collection execution** (Newman) must be sequential (data dependencies between suites)
-- Final step: merge all suite JSONs into one collection
+- **Individual Files**: Each suite exists as a standalone valid Postman collection.
+- **Sequential Execution**: The `run-api-tests.sh` script executes these in numeric order (00, 01, 02...).
+- **Environment Persistence**: Dynamic variables (tokens, IDs) are persisted between suite runs via a temporary environment file exported by Newman.
+- **No Manual Merging**: Do NOT merge files into a single collection; the runner handles the multi-file flow.
 
 ### Reuse for FE / Android / Client Portal Agents
 

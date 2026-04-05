@@ -50,10 +50,10 @@ public class AttendanceLog {
     @Column(name = "punch_time", nullable = false)
     private Instant punchTime;
 
-    @Column(name = "lat", nullable = false)
+    @Column(name = "latitude", nullable = false)
     private Double latitude;
 
-    @Column(name = "lng", nullable = false)
+    @Column(name = "longitude", nullable = false)
     private Double longitude;
 
     @Column

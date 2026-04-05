@@ -26,9 +26,17 @@ DB_NAME="${DATABASE_NAME:-fm_db}"
 DB_USER="${DATABASE_USERNAME:-user}"
 DB_PASS="${DATABASE_PASSWORD:-password}"
 
-if ! command -v psql &>/dev/null; then
-    fail "psql not found. Install: sudo apt install postgresql-client"
-fi
+run_psql() {
+    if ! command -v psql &>/dev/null; then
+        if command -v docker &>/dev/null && docker ps | grep -q fm-postgres; then
+            docker exec -i fm-postgres psql -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1
+        else
+            fail "psql not found and fm-postgres docker container not running. Install: brew install libpq"
+        fi
+    else
+        PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1
+    fi
+}
 
 log "Connecting to $DB_HOST:$DB_PORT/$DB_NAME as $DB_USER ..."
 
@@ -38,7 +46,7 @@ ADMIN_USER_ID="00000000-0000-4000-a000-000000000010"
 EMPLOYEE_USER_ID="00000000-0000-4000-a000-000000000020"
 EMPLOYEE_ID="00000000-0000-4000-a000-000000000021"
 
-PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 <<SQL
+run_psql <<SQL
 
 -- Ensure pgcrypto is available for password hashing
 CREATE EXTENSION IF NOT EXISTS pgcrypto;

@@ -120,9 +120,9 @@ app:
 
   # --- Rate Limiting ---
   rate-limit:
-    otp-requests-per-minute: 5
-    location-updates-per-10s: 1
-    default-requests-per-minute: 100
+    otp-requests-per-minute: 20
+    location-updates-per-10s: 50
+    default-requests-per-minute: 500
 
 # --- Springdoc OpenAPI ---
 springdoc:

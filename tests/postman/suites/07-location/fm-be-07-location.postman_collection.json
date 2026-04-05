@@ -1,0 +1,887 @@
+{
+  "info": {
+    "name": "FM-BE - 07-Location",
+    "_postman_id": "847038878e37a205",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "HAPPY: Update location (all fields)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/update",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "update"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"accuracy\": 10.0,\n  \"battery\": 0.85,\n  \"signal\": 4.0,\n  \"airplaneMode\": false\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Response has status ok', function () { pm.expect(resData.data.status).to.eql('ok'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Live locations for site",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/live/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "live",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "var locations = resData.data;",
+              "pm.test('Data is array', function () { pm.expect(locations).to.be.an('array'); });",
+              "if (locations.length > 0) {",
+              "    pm.test('Location has expected fields', function () {",
+              "        var loc = locations[0];",
+              "        pm.expect(loc.employeeId).to.be.a('string');",
+              "        pm.expect(loc.latitude).to.be.a('number');",
+              "        pm.expect(loc.longitude).to.be.a('number');",
+              "        pm.expect(loc.lastUpdated).to.be.a('string');",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: No active employees at site",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/live/{{site_id_2}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "live",
+            "{{site_id_2}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Data is empty array', function () { pm.expect(resData.data).to.be.an('array').that.is.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Non-existent site for live locations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/live/00000000-0000-0000-0000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "live",
+            "00000000-0000-0000-0000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var status = pm.response.code;",
+              "pm.test('Status 200 (empty) or 404', function () { pm.expect(status).to.be.oneOf([200, 404]); });",
+              "if (status === 200) { var resData = pm.response.json(); pm.test('Empty data', function () { pm.expect(resData.data).to.be.an('array').that.is.empty; }); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing latitude",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/update",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "update"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "var resData = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot view live locations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/live/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "live",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Heatmap with date range",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/heatmap/{{site_id}}?start=2026-01-01T00:00:00Z&end=2026-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "heatmap",
+            "{{site_id}}"
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "var heatmap = resData.data;",
+              "pm.test('Has points array', function () { pm.expect(heatmap.points).to.be.an('array'); });",
+              "if (heatmap.points.length > 0) {",
+              "    pm.test('Point has lat/lng/weight', function () { var p = heatmap.points[0]; pm.expect(p.latitude).to.be.a('number'); pm.expect(p.longitude).to.be.a('number'); pm.expect(p.weight).to.be.a('number'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Heatmap no data in range",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/heatmap/{{site_id}}?start=2020-01-01T00:00:00Z&end=2020-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "heatmap",
+            "{{site_id}}"
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "2020-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2020-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Points empty', function () { pm.expect(resData.data.points).to.be.an('array').that.is.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing longitude",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/update",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "update"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "var resData = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Heatmap missing date range",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/heatmap/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "heatmap",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var status = pm.response.code;",
+              "pm.test('Status 400 or 500 (missing required params)', function () { pm.expect(status).to.be.oneOf([400, 500]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot view heatmap",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/heatmap/{{site_id}}?start=2026-01-01T00:00:00Z&end=2026-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "heatmap",
+            "{{site_id}}"
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Geofence alerts endpoint",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/alerts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "alerts"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "var alerts = resData.data;",
+              "pm.test('Data is array', function () { pm.expect(alerts).to.be.an('array'); });",
+              "if (alerts.length > 0) {",
+              "    pm.test('Alert has expected fields', function () {",
+              "        var a = alerts[0];",
+              "        pm.expect(a.employeeId).to.be.a('string');",
+              "        pm.expect(a.siteId).to.be.a('string');",
+              "        pm.expect(a.lastLatitude).to.be.a('number');",
+              "        pm.expect(a.lastLongitude).to.be.a('number');",
+              "        pm.expect(a.minutesOutside).to.be.a('number');",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Admin cannot update location",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/update",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "update"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Alerts response structure",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/alerts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "alerts"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Success true', function () { pm.expect(resData.success).to.be.true; });",
+              "pm.test('Data is array', function () { pm.expect(resData.data).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: No active alerts expected",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/alerts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "alerts"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Data is array', function () { pm.expect(resData.data).to.be.an('array'); });",
+              "// Employees updated location inside geofence, so alerts may be empty or reflect stale data"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot view alerts",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/alerts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "alerts"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Airplane mode true",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/update",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "update"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"airplaneMode\": true\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Accepted with airplane mode', function () { pm.expect(resData.data.status).to.eql('ok'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Verify live location after update",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/live/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "live",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "var locations = resData.data;",
+              "pm.test('Has live locations', function () { pm.expect(locations).to.be.an('array'); });",
+              "// After location updates from earlier tests, at least one employee should appear",
+              "if (locations.length > 0) {",
+              "    pm.test('Employee has name', function () { pm.expect(locations[0].employeeName).to.be.a('string'); });",
+              "    pm.test('Coords are numbers', function () { pm.expect(locations[0].latitude).to.be.a('number'); pm.expect(locations[0].longitude).to.be.a('number'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Minimal update (coords only)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/location/update",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "location",
+            "update"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.077,\n  \"longitude\": 72.878\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Status ok', function () { pm.expect(resData.data.status).to.eql('ok'); });"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request: set common headers",
+          "if (pm.environment.get('access_token')) {",
+          "    pm.request.headers.upsert({",
+          "        key: 'Authorization',",
+          "        value: 'Bearer ' + pm.environment.get('access_token')",
+          "    });",
+          "}",
+          "pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });",
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test: response time check",
+          "pm.test('Response time < 5s', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

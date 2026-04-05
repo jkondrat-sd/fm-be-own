@@ -55,11 +55,10 @@
 
 ---
 
-## Phase 3: Postman Collection Creation (Suite-by-Suite)
-
-> Each task below creates one Postman folder/suite inside the collection.  
+> Each task below creates a suite-specific Postman collection file in `tests/postman/suites/<suite-slug>/`.  
+> Example: `tests/postman/suites/05-shifts/fm-be-05-shifts.postman_collection.json`.
 > Reference: `PLANNING.md` §4.x for exact test cases per suite.  
-> Agents should read the corresponding controller + DTO source files for precise request/response shapes.
+> Agents must read the corresponding controller + DTO source files for precise request/response shapes.
 
 ### TASK-3.1: Suite 00 — Smoke Tests
 **Status**: ✅ Done  
@@ -311,6 +310,10 @@
 **Tests**: 22  
 **Reference**: `PLANNING.md` §4.6
 
+- ⬜ Create `tests/postman/suites/05-shifts/fm-be-05-shifts.postman_collection.json`
+- ⬜ Implement CRUD `/v1/shifts`, assign, schedule
+- ⬜ Day/night shift, duplicate assignment (409), employee schedule view, admin view
+
 **Endpoints**: CRUD `/v1/shifts`, assign, schedule  
 **Key tests**: day/night shift, duplicate assignment (409), employee schedule view, admin view  
 **Environment vars set**: `shift_id`, `shift_assignment_id`
@@ -432,10 +435,14 @@
 ---
 
 ### TASK-3.9: Suite 08 — Site Updates
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-03  
+**Date Completed**: 2026-04-03  
 **Tests**: 14  
 **Reference**: `PLANNING.md` §4.9
+
+- ✅ Create `tests/postman/suites/08-site-updates/fm-be-08-site-updates.postman_collection.json`
+- ✅ Implement create, list by site, get by ID
 
 **Endpoints**: create, list by site, get by ID  
 **Key tests**: text-only, text+media, media-only, too many media (>6), RBAC  
@@ -448,6 +455,10 @@
 **Date Added**: 2026-04-03  
 **Tests**: 35  
 **Reference**: `PLANNING.md` §4.10
+
+- ⬜ Create `tests/postman/suites/09-payroll/fm-be-09-payroll.postman_collection.json`
+- ⬜ Implement salary-structure CRUD, payroll run lifecycle, payslips
+- ⬜ Verify PF/ESIC/TDS/PT statutory compliance math
 
 **Endpoints**: salary-structure CRUD, payroll run lifecycle, payslips  
 **Key tests**: salary creation, PF/ESIC/TDS/PT verification, payroll run (initiate → poll → approve/reject), payslip statutory compliance  
@@ -467,6 +478,9 @@
 **Tests**: 16  
 **Reference**: `PLANNING.md` §4.11
 
+- ⬜ Create `tests/postman/suites/10-notifications/fm-be-10-notifications.postman_collection.json`
+- ⬜ Implement send, list, mark read, register device
+
 **Endpoints**: send, list, mark read, register device  
 **Key tests**: send with/without metadata, unread count, mark read (idempotent), device registration  
 **Environment vars set**: `notification_id`
@@ -478,6 +492,9 @@
 **Date Added**: 2026-04-03  
 **Tests**: 12  
 **Reference**: `PLANNING.md` §4.12
+
+- ⬜ Create `tests/postman/suites/11-media/fm-be-11-media.postman_collection.json`
+- ⬜ Implement presigned-url, confirm
 
 **Endpoints**: presigned-url, confirm  
 **Key tests**: image/video/document URLs, file size limits (5MB image, 50MB video), unsupported type, confirm upload  
@@ -491,6 +508,9 @@
 **Tests**: 20  
 **Reference**: `PLANNING.md` §4.13
 
+- ⬜ Create `tests/postman/suites/12-admin/fm-be-12-admin.postman_collection.json`
+- ⬜ Implement audit-logs, dashboard stats, export, config
+
 **Endpoints**: audit-logs, dashboard stats, export, config  
 **Key tests**: audit log filtering, CSV export (users/employees/sites), system config CRUD, SUPER_ADMIN vs ADMIN RBAC  
 
@@ -501,6 +521,9 @@
 **Date Added**: 2026-04-03  
 **Tests**: 3  
 **Reference**: `PLANNING.md` §4.14
+
+- ⬜ Create `tests/postman/suites/99-cleanup/fm-be-99-cleanup.postman_collection.json`
+- ⬜ Implement logout admin, logout employee, verify tokens invalidated (401)
 
 **Tests**: logout admin, logout employee, verify tokens invalidated (401)
 

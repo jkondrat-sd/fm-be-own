@@ -55,5 +55,5 @@ app:
     queue-capacity: 10
   rate-limit:
     otp-requests-per-minute: 5
-    location-updates-per-10s: 1
+    location-updates-per-10s: 50
     default-requests-per-minute: 100

@@ -1,0 +1,1479 @@
+{
+  "info": {
+    "name": "FM-BE - 06-Attendance",
+    "_postman_id": "c3f8f3c2e1a0c18c",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "HAPPY: Punch IN inside geofence",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"IN\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"accuracy\": 10.0,\n  \"faceMatchScore\": 0.92,\n  \"deviceInfo\": {\n    \"model\": \"Pixel 7\",\n    \"os\": \"Android 14\",\n    \"appVersion\": \"1.0.0\"\n  }\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var adminToken = pm.environment.get('admin_access_token');",
+              "var orgId = pm.environment.get('organization_id');",
+              "var siteId = pm.environment.get('site_id');",
+              "var baseUrl = pm.environment.get('base_url');",
+              "",
+              "// Generate unique employee per test run (avoids 5-min dedup conflicts on re-run)",
+              "var ts = Date.now().toString();",
+              "var email = 'att-' + ts + '@fmtest.com';",
+              "var phone = '+9199' + ts.slice(-8);",
+              "pm.environment.set('_att_emp_email', email);",
+              "",
+              "pm.sendRequest({",
+              "    url: baseUrl + '/v1/employees',",
+              "    method: 'POST',",
+              "    header: [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer ' + adminToken }],",
+              "    body: { mode: 'raw', raw: JSON.stringify({ fullName: 'Att Employee ' + ts.slice(-4), phone: phone, email: email, organizationId: orgId, siteId: siteId }) }",
+              "}, function(err, res) {",
+              "    if (res.code !== 201) { console.log('Employee create failed:', res.code, res.json()); return; }",
+              "    var empData = res.json().data;",
+              "    pm.environment.set('attendance_employee_id', empData.id);",
+              "    var userId = empData.userId;",
+              "",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/v1/admin/users/' + userId,",
+              "        method: 'PUT',",
+              "        header: [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer ' + adminToken }],",
+              "        body: { mode: 'raw', raw: JSON.stringify({ password: 'Test@123456' }) }",
+              "    }, function(e2, r2) {",
+              "        pm.sendRequest({",
+              "            url: baseUrl + '/v1/auth/login',",
+              "            method: 'POST',",
+              "            header: [{ key: 'Content-Type', value: 'application/json' }],",
+              "            body: { mode: 'raw', raw: JSON.stringify({ email: email, password: 'Test@123456' }) }",
+              "        }, function(e3, r3) {",
+              "            if (r3.code === 200) {",
+              "                var ld = r3.json().data;",
+              "                pm.environment.set('employee_access_token', ld.accessToken);",
+              "                pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + ld.accessToken });",
+              "            }",
+              "        });",
+              "    });",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var resData = pm.response.json();",
+              "var punch = resData.data;",
+              "pm.test('Has punch ID', function () { pm.expect(punch.id).to.be.a('string'); });",
+              "pm.test('PunchType is IN', function () { pm.expect(punch.punchType).to.eql('IN'); });",
+              "pm.test('Inside geofence', function () { pm.expect(punch.insideGeofence).to.be.true; });",
+              "pm.test('Has employeeId', function () { pm.expect(punch.employeeId).to.be.a('string'); });",
+              "pm.test('Has siteId', function () { pm.expect(punch.siteId).to.be.a('string'); });",
+              "pm.test('FaceMatchScore preserved', function () { pm.expect(punch.faceMatchScore).to.eql(0.92); });",
+              "pm.test('Has punchTime', function () { pm.expect(punch.punchTime).to.be.a('string'); });",
+              "pm.environment.set('attendance_log_id', punch.id);",
+              "pm.environment.set('attendance_employee_id', punch.employeeId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Punch OUT inside geofence",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"OUT\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var resData = pm.response.json();",
+              "var punch = resData.data;",
+              "pm.test('PunchType is OUT', function () { pm.expect(punch.punchType).to.eql('OUT'); });",
+              "pm.test('Inside geofence', function () { pm.expect(punch.insideGeofence).to.be.true; });",
+              "pm.test('No face score (optional omitted)', function () { pm.expect(punch.faceMatchScore).to.be.null; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Punch IN without face (second employee)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"IN\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var adminToken = pm.environment.get('admin_access_token');",
+              "var orgId = pm.environment.get('organization_id');",
+              "var siteId = pm.environment.get('site_id');",
+              "var baseUrl = pm.environment.get('base_url');",
+              "",
+              "var ts = Date.now().toString();",
+              "var email = 'att2-' + ts + '@fmtest.com';",
+              "var phone = '+9198' + ts.slice(-8);",
+              "",
+              "pm.sendRequest({",
+              "    url: baseUrl + '/v1/employees',",
+              "    method: 'POST',",
+              "    header: [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer ' + adminToken }],",
+              "    body: { mode: 'raw', raw: JSON.stringify({ fullName: 'Att Employee2 ' + ts.slice(-4), phone: phone, email: email, organizationId: orgId, siteId: siteId }) }",
+              "}, function(err, res) {",
+              "    if (res.code !== 201) { console.log('Emp2 create failed:', res.code); return; }",
+              "    var userId = res.json().data.userId;",
+              "",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/v1/admin/users/' + userId,",
+              "        method: 'PUT',",
+              "        header: [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer ' + adminToken }],",
+              "        body: { mode: 'raw', raw: JSON.stringify({ password: 'Test@123456' }) }",
+              "    }, function(e2, r2) {",
+              "        pm.sendRequest({",
+              "            url: baseUrl + '/v1/auth/login',",
+              "            method: 'POST',",
+              "            header: [{ key: 'Content-Type', value: 'application/json' }],",
+              "            body: { mode: 'raw', raw: JSON.stringify({ email: email, password: 'Test@123456' }) }",
+              "        }, function(e3, r3) {",
+              "            if (r3.code === 200) {",
+              "                pm.environment.set('employee2_access_token', r3.json().data.accessToken);",
+              "                pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + r3.json().data.accessToken });",
+              "            }",
+              "        });",
+              "    });",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var resData = pm.response.json();",
+              "pm.test('PunchType is IN', function () { pm.expect(resData.data.punchType).to.eql('IN'); });",
+              "pm.test('No face score', function () { pm.expect(resData.data.faceMatchScore).to.be.null; });",
+              "pm.test('Inside geofence', function () { pm.expect(resData.data.insideGeofence).to.be.true; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Punch OUTSIDE geofence",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"IN\",\n  \"latitude\": 28.6139,\n  \"longitude\": 77.209,\n  \"faceMatchScore\": 0.92\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 422', function () { pm.response.to.have.status(422); });",
+              "var resData = pm.response.json();",
+              "pm.test('Error code GEOFENCE_VIOLATION', function () { pm.expect(resData.error.code).to.eql('GEOFENCE_VIOLATION'); });",
+              "pm.test('Success false', function () { pm.expect(resData.success).to.be.false; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Face match score too low",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"IN\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"faceMatchScore\": 0.5\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 422', function () { pm.response.to.have.status(422); });",
+              "var resData = pm.response.json();",
+              "pm.test('Error code FACE_MISMATCH', function () { pm.expect(resData.error.code).to.eql('FACE_MISMATCH'); });",
+              "pm.test('Success false', function () { pm.expect(resData.success).to.be.false; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Duplicate punch within 5 min",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"OUT\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 409', function () { pm.response.to.have.status(409); });",
+              "var resData = pm.response.json();",
+              "pm.test('Error code DUPLICATE_PUNCH', function () { pm.expect(resData.error.code).to.eql('DUPLICATE_PUNCH'); });",
+              "pm.test('Success false', function () { pm.expect(resData.success).to.be.false; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Punch at inactive site",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var adminToken = pm.environment.get('admin_access_token');",
+              "var empToken = pm.environment.get('employee_access_token');",
+              "var siteId = pm.environment.get('site_id');",
+              "var baseUrl = pm.environment.get('base_url');",
+              "",
+              "// Step 1: Deactivate site",
+              "pm.sendRequest({",
+              "    url: baseUrl + '/v1/sites/' + siteId,",
+              "    method: 'PUT',",
+              "    header: [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer ' + adminToken }],",
+              "    body: { mode: 'raw', raw: JSON.stringify({ isActive: false }) }",
+              "}, function(err, deactRes) {",
+              "    // Step 2: Attempt punch at the now-inactive site",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/v1/attendance/punch',",
+              "        method: 'POST',",
+              "        header: [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer ' + empToken }],",
+              "        body: { mode: 'raw', raw: JSON.stringify({ punchType: 'IN', latitude: 19.076, longitude: 72.8777 }) }",
+              "    }, function(err2, punchRes) {",
+              "        pm.environment.set('_inactive_site_status', punchRes.code.toString());",
+              "        pm.environment.set('_inactive_site_body', JSON.stringify(punchRes.json()));",
+              "",
+              "        // Step 3: Reactivate site immediately",
+              "        pm.sendRequest({",
+              "            url: baseUrl + '/v1/sites/' + siteId,",
+              "            method: 'PUT',",
+              "            header: [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer ' + adminToken }],",
+              "            body: { mode: 'raw', raw: JSON.stringify({ isActive: true }) }",
+              "        }, function(err3, reactRes) { /* site reactivated */ });",
+              "    });",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var status = parseInt(pm.environment.get('_inactive_site_status'));",
+              "var body = JSON.parse(pm.environment.get('_inactive_site_body'));",
+              "",
+              "pm.test('Status 410 (SITE_INACTIVE)', function () { pm.expect(status).to.eql(410); });",
+              "pm.test('Error code SITE_INACTIVE', function () { pm.expect(body.error.code).to.eql('SITE_INACTIVE'); });",
+              "pm.test('Success false', function () { pm.expect(body.success).to.be.false; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Employee with no site assignment",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"IN\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var adminToken = pm.environment.get('admin_access_token');",
+              "var orgId = pm.environment.get('organization_id');",
+              "var baseUrl = pm.environment.get('base_url');",
+              "",
+              "var ts = Date.now().toString();",
+              "var email = 'nosite-' + ts + '@fmtest.com';",
+              "var phone = '+9197' + ts.slice(-8);",
+              "",
+              "pm.sendRequest({",
+              "    url: baseUrl + '/v1/employees',",
+              "    method: 'POST',",
+              "    header: [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer ' + adminToken }],",
+              "    body: { mode: 'raw', raw: JSON.stringify({ fullName: 'NoSite Employee ' + ts.slice(-4), phone: phone, email: email, organizationId: orgId }) }",
+              "}, function(err, res) {",
+              "    if (res.code !== 201) { console.log('NoSite emp create failed:', res.code); return; }",
+              "    var userId = res.json().data.userId;",
+              "",
+              "    pm.sendRequest({",
+              "        url: baseUrl + '/v1/admin/users/' + userId,",
+              "        method: 'PUT',",
+              "        header: [{ key: 'Content-Type', value: 'application/json' }, { key: 'Authorization', value: 'Bearer ' + adminToken }],",
+              "        body: { mode: 'raw', raw: JSON.stringify({ password: 'Test@123456' }) }",
+              "    }, function(e2, r2) {",
+              "        pm.sendRequest({",
+              "            url: baseUrl + '/v1/auth/login',",
+              "            method: 'POST',",
+              "            header: [{ key: 'Content-Type', value: 'application/json' }],",
+              "            body: { mode: 'raw', raw: JSON.stringify({ email: email, password: 'Test@123456' }) }",
+              "        }, function(e3, r3) {",
+              "            if (r3.code === 200) {",
+              "                pm.environment.set('no_site_employee_token', r3.json().data.accessToken);",
+              "                pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + r3.json().data.accessToken });",
+              "            }",
+              "        });",
+              "    });",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var status = pm.response.code;",
+              "pm.test('Status 410 (no site \u2014 SITE_INACTIVE)', function () { pm.expect(status).to.eql(410); });",
+              "var resData = pm.response.json();",
+              "pm.test('Error code SITE_INACTIVE', function () { pm.expect(resData.error.code).to.eql('SITE_INACTIVE'); });",
+              "pm.test('Success false', function () { pm.expect(resData.success).to.be.false; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing punchType",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "var resData = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing coordinates",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"IN\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "var resData = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });",
+              "pm.test('Has lat + lng errors', function () { var d = resData.error.details; pm.expect(d).to.have.property('latitude'); pm.expect(d).to.have.property('longitude'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Invalid punchType",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"BREAK\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var status = pm.response.code;",
+              "pm.test('Status 400 or 500 (invalid enum)', function () { pm.expect(status).to.be.oneOf([400, 500]); });",
+              "var resData = pm.response.json();",
+              "pm.test('Success false', function () { pm.expect(resData.success).to.be.false; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Admin cannot punch",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"IN\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: No auth token",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/punch",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "punch"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"punchType\": \"IN\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: '' });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 401 or 403', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Get today's punches",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/today",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "today"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "var logs = resData.data;",
+              "pm.test('Data is array', function () { pm.expect(logs).to.be.an('array'); });",
+              "pm.test('Has at least 2 punches (IN + OUT)', function () { pm.expect(logs.length).to.be.at.least(2); });",
+              "pm.test('Log has expected fields', function () { var l = logs[0]; pm.expect(l.id).to.be.a('string'); pm.expect(l.punchType).to.be.oneOf(['IN', 'OUT']); pm.expect(l.punchTime).to.be.a('string'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: No punches today",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/today",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "today"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('no_site_employee_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Data is empty array', function () { pm.expect(resData.data).to.be.an('array').that.is.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Admin cannot use /today",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/today",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "today"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Get logs with date range",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/logs?start=2026-01-01T00:00:00Z&end=2026-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "logs"
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Has data array', function () { pm.expect(resData.data).to.be.an('array'); });",
+              "pm.test('Has pagination meta', function () { pm.expect(resData.meta).to.have.property('page'); pm.expect(resData.meta).to.have.property('limit'); pm.expect(resData.meta).to.have.property('total'); pm.expect(resData.meta).to.have.property('totalPages'); });",
+              "pm.test('Has attendance logs', function () { pm.expect(resData.data.length).to.be.at.least(2); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Filter logs by siteId",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/logs?siteId={{site_id}}&start=2026-01-01T00:00:00Z&end=2026-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "logs"
+          ],
+          "query": [
+            {
+              "key": "siteId",
+              "value": "{{site_id}}"
+            },
+            {
+              "key": "start",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Has data', function () { pm.expect(resData.data).to.be.an('array'); });",
+              "pm.test('Logs belong to site', function () { if (resData.data.length > 0) { pm.expect(resData.data[0].siteId).to.eql(pm.environment.get('site_id')); } });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Filter logs by employeeId",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/logs?employeeId={{attendance_employee_id}}&start=2026-01-01T00:00:00Z&end=2026-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "logs"
+          ],
+          "query": [
+            {
+              "key": "employeeId",
+              "value": "{{attendance_employee_id}}"
+            },
+            {
+              "key": "start",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "pm.test('Has data', function () { pm.expect(resData.data).to.be.an('array'); });",
+              "pm.test('Logs belong to employee', function () { if (resData.data.length > 0) { pm.expect(resData.data[0].employeeId).to.eql(pm.environment.get('attendance_employee_id')); } });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing date range for logs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/logs",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "logs"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var status = pm.response.code;",
+              "pm.test('Status 400 or 500 (missing required params)', function () { pm.expect(status).to.be.oneOf([400, 500]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Start after end",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/logs?start=2026-12-31T23:59:59Z&end=2026-01-01T00:00:00Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "logs"
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "2026-12-31T23:59:59Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-01-01T00:00:00Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([200, 400]); });",
+              "if (pm.response.code === 200) { var resData = pm.response.json(); pm.test('Data is array', function () { pm.expect(resData.data).to.be.an('array'); }); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot view logs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/logs?start=2026-01-01T00:00:00Z&end=2026-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "logs"
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Site attendance report",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/report?siteId={{site_id}}&start=2026-01-01T00:00:00Z&end=2026-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "report"
+          ],
+          "query": [
+            {
+              "key": "siteId",
+              "value": "{{site_id}}"
+            },
+            {
+              "key": "start",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "var report = resData.data;",
+              "pm.test('Has siteId', function () { pm.expect(report.siteId).to.be.a('string'); });",
+              "pm.test('Has totalPunchIns', function () { pm.expect(report.totalPunchIns).to.be.a('number'); });",
+              "pm.test('Has totalPunchOuts', function () { pm.expect(report.totalPunchOuts).to.be.a('number'); });",
+              "pm.test('Has totalEmployees', function () { pm.expect(report.totalEmployees).to.be.a('number'); });",
+              "pm.test('PunchIns > 0', function () { pm.expect(report.totalPunchIns).to.be.at.least(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Report for site with no attendance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/report?siteId={{site_id_2}}&start=2026-01-01T00:00:00Z&end=2026-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "report"
+          ],
+          "query": [
+            {
+              "key": "siteId",
+              "value": "{{site_id_2}}"
+            },
+            {
+              "key": "start",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "var report = resData.data;",
+              "pm.test('Zero or low punch counts', function () { pm.expect(report.totalPunchIns).to.be.at.most(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Report for non-existent siteId",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/report?siteId=00000000-0000-0000-0000-000000000099&start=2026-01-01T00:00:00Z&end=2026-12-31T23:59:59Z",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "report"
+          ],
+          "query": [
+            {
+              "key": "siteId",
+              "value": "00000000-0000-0000-0000-000000000099"
+            },
+            {
+              "key": "start",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "end",
+              "value": "2026-12-31T23:59:59Z"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var status = pm.response.code;",
+              "pm.test('Status 200 (zeroes) or 404', function () { pm.expect(status).to.be.oneOf([200, 404]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Today's site attendance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/site/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "site",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json();",
+              "var logs = resData.data;",
+              "pm.test('Data is array', function () { pm.expect(logs).to.be.an('array'); });",
+              "pm.test('Has attendance entries', function () { pm.expect(logs.length).to.be.at.least(1); });",
+              "pm.test('Log has employee and punch fields', function () { if (logs.length > 0) { var l = logs[0]; pm.expect(l.employeeId).to.be.a('string'); pm.expect(l.punchType).to.be.oneOf(['IN', 'OUT']); } });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Site attendance for non-existent site",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/site/00000000-0000-0000-0000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "site",
+            "00000000-0000-0000-0000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "var status = pm.response.code;",
+              "pm.test('Status 200 (empty) or 404', function () { pm.expect(status).to.be.oneOf([200, 404]); });",
+              "if (status === 200) { var resData = pm.response.json(); pm.test('Data is empty', function () { pm.expect(resData.data).to.be.an('array').that.is.empty; }); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot view site attendance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/attendance/site/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "attendance",
+            "site",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request: set common headers",
+          "if (pm.environment.get('access_token')) {",
+          "    pm.request.headers.upsert({",
+          "        key: 'Authorization',",
+          "        value: 'Bearer ' + pm.environment.get('access_token')",
+          "    });",
+          "}",
+          "pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });",
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test: response time check",
+          "pm.test('Response time < 5s', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}

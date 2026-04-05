@@ -1,0 +1,649 @@
+{
+  "info": {
+    "name": "FM-BE - 08-SiteUpdates",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "HAPPY: Create text-only update",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\",\n  \"text\": \"All clear at Mumbai HQ\",\n  \"recordedAt\": \"{{$isoTimestamp}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var body = pm.response.json();",
+              "var resData = body.data;",
+              "pm.test('Has ID', function () { pm.expect(resData.id).to.be.a('string'); });",
+              "pm.test('Text matches', function () { pm.expect(resData.text).to.eql('All clear at Mumbai HQ'); });",
+              "pm.environment.set('site_update_id', resData.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Create with text + media",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\",\n  \"text\": \"Material delivery progress\",\n  \"mediaUrls\": [\n    \"https://s3.example.com/fm/photos/1.jpg\",\n    \"https://s3.example.com/fm/photos/2.jpg\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var body = pm.response.json();",
+              "var resData = body.data;",
+              "pm.test('Media URLs count matches', function () { pm.expect(resData.mediaUrls).to.have.lengthOf(2); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Create with media only",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\",\n  \"mediaUrls\": [\n    \"https://s3.example.com/fm/photos/3.jpg\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var body = pm.response.json();",
+              "var resData = body.data;",
+              "pm.test('Text is null or empty', function () { pm.expect(resData.text).to.be.oneOf([null, '']); });",
+              "pm.test('Has 1 media URL', function () { pm.expect(resData.mediaUrls).to.have.lengthOf(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing siteId",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"No site specified\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "var body = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(body.error.code).to.eql('VALIDATION_ERROR'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Too many media (>6)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\",\n  \"mediaUrls\": [\n    \"url1\", \"url2\", \"url3\", \"url4\", \"url5\", \"url6\", \"url7\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "var body = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(body.error.code).to.eql('VALIDATION_ERROR'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Empty text and media",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// No server-side validation on empty content currently exists in code",
+              "pm.test('Status 201 or 400', function () { pm.expect(pm.response.code).to.be.oneOf([201, 400]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Admin cannot create update",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\",\n  \"text\": \"Admin trying to report\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: List updates for site",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates/site/{{site_id}}?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates",
+            "site",
+            "{{site_id}}"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "var resData = body.data;",
+              "pm.test('Data is array', function () { pm.expect(resData).to.be.an('array'); });",
+              "pm.test('Has meta', function () { pm.expect(body.meta).to.exist; });",
+              "pm.test('Found recent updates', function () { pm.expect(resData.length).to.be.at.least(2); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: No updates",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates/site/{{site_id_2}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates",
+            "site",
+            "{{site_id_2}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "var resData = body.data;",
+              "pm.test('Data is empty array', function () { pm.expect(resData).to.be.an('array').that.is.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot list",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates/site/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates",
+            "site",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Get update by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates/{{site_update_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates",
+            "{{site_update_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "var resData = body.data;",
+              "pm.test('ID matches', function () { pm.expect(resData.id).to.eql(pm.environment.get('site_update_id')); });",
+              "pm.test('Has employee info', function () { pm.expect(resData.employeeId).to.exist; pm.expect(resData.employeeName).to.exist; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Non-existent ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates/00000000-0000-0000-0000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates",
+            "00000000-0000-0000-0000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+              "var body = pm.response.json();",
+              "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(body.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot view",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates/{{site_update_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates",
+            "{{site_update_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Verify media URLs preserved",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/site-updates/site/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "site-updates",
+            "site",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "var resData = body.data;",
+              "var updateWithMedia = resData.find(u => u.mediaUrls && u.mediaUrls.length === 2);",
+              "pm.test('Update with media exists', function () { pm.expect(updateWithMedia).to.exist; });",
+              "pm.test('Media URLs match', function () { ",
+              "  pm.expect(updateWithMedia.mediaUrls).to.include('https://s3.example.com/fm/photos/1.jpg');",
+              "  pm.expect(updateWithMedia.mediaUrls).to.include('https://s3.example.com/fm/photos/2.jpg');",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

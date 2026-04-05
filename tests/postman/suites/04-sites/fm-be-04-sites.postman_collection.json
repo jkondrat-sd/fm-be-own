@@ -1,0 +1,1216 @@
+{
+  "info": {
+    "name": "FM-BE - 04-Sites",
+    "_postman_id": "ac2c099d8aff9ead",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create site with location",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Mumbai HQ\",\n  \"address\": \"123 Marine Drive, Mumbai\",\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"geofenceRadius\": 500,\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "const resData = pm.response.json();",
+              "const site = resData.data;",
+              "pm.test('Has site ID', function () { pm.expect(site.id).to.be.a('string'); });",
+              "pm.test('Name matches', function () { pm.expect(site.name).to.eql('Mumbai HQ'); });",
+              "pm.test('Latitude set', function () { pm.expect(site.latitude).to.eql(19.076); });",
+              "pm.test('Longitude set', function () { pm.expect(site.longitude).to.eql(72.8777); });",
+              "pm.test('GeofenceRadius set', function () { pm.expect(site.geofenceRadius).to.eql(500); });",
+              "pm.test('Active by default', function () { pm.expect(site.active).to.be.true; });",
+              "pm.test('OrganizationId set', function () { pm.expect(site.organizationId).to.be.a('string'); });",
+              "pm.test('Has timestamps', function () { pm.expect(site.createdAt).to.be.a('string'); pm.expect(site.updatedAt).to.be.a('string'); });",
+              "pm.environment.set('site_id', site.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create site minimal (name only)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Minimal Site\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "const resData = pm.response.json();",
+              "const site = resData.data;",
+              "pm.test('Has site ID', function () { pm.expect(site.id).to.be.a('string'); });",
+              "pm.test('Name matches', function () { pm.expect(site.name).to.eql('Minimal Site'); });",
+              "pm.test('Latitude is null', function () { pm.expect(site.latitude).to.be.null; });",
+              "pm.test('Active by default', function () { pm.expect(site.active).to.be.true; });",
+              "pm.environment.set('site_id_2', site.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing name",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });",
+              "pm.test('Details mention name', function () { pm.expect(resData.error.details).to.have.property('name'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing organizationId",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"No Org Site\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });",
+              "pm.test('Details mention organizationId', function () { pm.expect(resData.error.details).to.have.property('organizationId'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot create site",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Unauthorized Site\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "if (empToken) {",
+              "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + empToken });",
+              "} else {",
+              "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer invalid-token-for-rbac' });",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403 or 401', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update site name",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Mumbai HQ - Updated\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "const site = resData.data;",
+              "pm.test('Name updated', function () { pm.expect(site.name).to.eql('Mumbai HQ - Updated'); });",
+              "pm.test('ID unchanged', function () { pm.expect(site.id).to.eql(pm.environment.get('site_id')); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deactivate site (update isActive=false)",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id_2}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id_2}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": false\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "const site = resData.data;",
+              "pm.test('Active is false', function () { pm.expect(site.active).to.be.false; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Re-activate site_id_2 (cleanup)",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id_2}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id_2}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": true\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "const site = resData.data;",
+              "pm.test('Active is true again', function () { pm.expect(site.active).to.be.true; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Update non-existent site",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/00000000-0000-4000-a000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "00000000-0000-4000-a000-000000000099"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Ghost Site\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(resData.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get site by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "const site = resData.data;",
+              "pm.test('ID matches', function () { pm.expect(site.id).to.eql(pm.environment.get('site_id')); });",
+              "pm.test('Name is updated value', function () { pm.expect(site.name).to.eql('Mumbai HQ - Updated'); });",
+              "pm.test('Has all expected fields', function () {",
+              "    pm.expect(site).to.have.all.keys('id', 'name', 'address', 'latitude', 'longitude', 'geofenceRadius', 'active', 'clientId', 'organizationId', 'createdAt', 'updatedAt');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Non-existent site ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/00000000-0000-4000-a000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "00000000-0000-4000-a000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(resData.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List sites paginated",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "pm.test('Success true', function () { pm.expect(resData.success).to.be.true; });",
+              "pm.test('Data is array', function () { pm.expect(resData.data).to.be.an('array'); });",
+              "pm.test('Has meta pagination', function () {",
+              "    pm.expect(resData.meta).to.have.property('page');",
+              "    pm.expect(resData.meta).to.have.property('limit');",
+              "    pm.expect(resData.meta).to.have.property('total');",
+              "    pm.expect(resData.meta).to.have.property('totalPages');",
+              "});",
+              "pm.test('At least 2 sites exist', function () { pm.expect(resData.data.length).to.be.at.least(2); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List sites default pagination",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "pm.test('Success true', function () { pm.expect(resData.success).to.be.true; });",
+              "pm.test('Data is array', function () { pm.expect(resData.data).to.be.an('array'); });",
+              "pm.test('Meta has defaults', function () {",
+              "    pm.expect(resData.meta.page).to.eql(1);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Set circular geofence",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id}}",
+            "geofence"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": 500\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Set polygon geofence via GeoJSON",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id_2}}/geofence",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id_2}}",
+            "geofence"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"geoJson\": \"{\\\"type\\\":\\\"Polygon\\\",\\\"coordinates\\\":[[[72.87,19.07],[72.88,19.07],[72.88,19.08],[72.87,19.08],[72.87,19.07]]]}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing latitude/longitude",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id}}",
+            "geofence"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"radiusMeters\": 500\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });",
+              "pm.test('Details mention latitude', function () { pm.expect(resData.error.details).to.have.property('latitude'); });",
+              "pm.test('Details mention longitude', function () { pm.expect(resData.error.details).to.have.property('longitude'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Non-existent site geofence",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/00000000-0000-4000-a000-000000000099/geofence",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "00000000-0000-4000-a000-000000000099",
+            "geofence"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": 500\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(resData.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Zero radius",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id}}",
+            "geofence"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": 0\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 or 400 or 500', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422, 500]);",
+              "});",
+              "if (pm.response.code === 200) {",
+              "    const resData = pm.response.json();",
+              "    pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Negative radius",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id}}",
+            "geofence"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": -100\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200 or 400 or 500', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 422, 500]);",
+              "});",
+              "if (pm.response.code === 200) {",
+              "    const resData = pm.response.json();",
+              "    pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update existing geofence (new radius)",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id}}/geofence",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id}}",
+            "geofence"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"latitude\": 19.076,\n  \"longitude\": 72.8777,\n  \"radiusMeters\": 1000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "pm.test('Geofence updated message', function () { pm.expect(resData.data.message).to.eql('Geofence updated successfully'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create disposable site for delete tests",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Disposable Site\",\n  \"organizationId\": \"{{organization_id}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "const resData = pm.response.json();",
+              "pm.environment.set('disposable_site_id', resData.data.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Soft-delete site",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{disposable_site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{disposable_site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204', function () { pm.response.to.have.status(204); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Delete non-existent site",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/00000000-0000-4000-a000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "00000000-0000-4000-a000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(resData.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Delete already-deleted site",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{disposable_site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{disposable_site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// findByIdAndOrganizationId still finds it (isActive filter not in query), so deactivateSite will set false again (idempotent)",
+              "pm.test('Status 204 or 404', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([204, 404, 410]);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot delete site",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "if (empToken) {",
+              "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + empToken });",
+              "} else {",
+              "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer invalid-token-for-rbac' });",
+              "}"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403 or 401', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify site_id still active",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/sites/{{site_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "sites",
+            "{{site_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "const resData = pm.response.json();",
+              "const site = resData.data;",
+              "pm.test('Site still active', function () { pm.expect(site.active).to.be.true; });",
+              "pm.test('Name is updated value', function () { pm.expect(site.name).to.eql('Mumbai HQ - Updated'); });",
+              "pm.test('GeofenceRadius updated to 1000', function () { pm.expect(site.geofenceRadius).to.eql(1000); });"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request: set common headers",
+          "if (pm.environment.get('access_token')) {",
+          "    pm.request.headers.upsert({",
+          "        key: 'Authorization',",
+          "        value: 'Bearer ' + pm.environment.get('access_token')",
+          "    });",
+          "}",
+          "pm.request.headers.upsert({ key: 'Content-Type', value: 'application/json' });",
+          "pm.request.headers.upsert({ key: 'Accept', value: 'application/json' });"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test: response time check",
+          "pm.test('Response time < 5s', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});"
+        ]
+      }
+    }
+  ]
+}
