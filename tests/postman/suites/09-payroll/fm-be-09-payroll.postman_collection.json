@@ -1,0 +1,2066 @@
+{
+  "info": {
+    "name": "FM-BE - 09-Payroll",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "[01] HAPPY: Create salary structure",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"basic\": 25000,\n  \"hra\": 10000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });",
+              "var yr = 2026 + Math.floor(Math.random() * 1000);",
+              "pm.environment.set('payroll_test_year', yr);",
+              "pm.environment.set('payroll_test_year_future', yr + 5000);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Has grossSalary calculated', function() { pm.expect(resData.grossSalary).to.eql(35000); });",
+              "pm.test('Has PF calculated', function() { pm.expect(resData.pfEmployee).to.eql(1800); });",
+              "pm.test('Has PT calculated', function() { pm.expect(resData.ptAmount).to.be.above(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[02] HAPPY: With all allowances",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{minimal_employee_id}}\",\n  \"basic\": 20000,\n  \"hra\": 10000,\n  \"conveyance\": 1600,\n  \"special\": 3000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Has special allowance', function() { pm.expect(resData.special).to.eql(3000); });",
+              "pm.test('All fields populated', function() { pm.expect(resData.conveyance).to.eql(1600); pm.expect(resData.basic).to.eql(20000); pm.expect(resData.hra).to.eql(10000); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[03] EDGE: Duplicate for same employee",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"basic\": 30000,\n  \"hra\": 15000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 409', function () { pm.response.to.have.status(409); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Error DUPLICATE_RESOURCE', function() { pm.expect(resBody.error.code).to.eql('DUPLICATE_RESOURCE'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[04] EDGE: Non-existent employee",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"00000000-0000-0000-0000-000000000099\",\n  \"basic\": 25000,\n  \"hra\": 10000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[05] EDGE: Negative basic",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"basic\": -5000,\n  \"hra\": 10000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[06] EDGE: Zero basic",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"basic\": 0,\n  \"hra\": 10000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[07] RBAC: Employee cannot create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"basic\": 25000,\n  \"hra\": 10000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[08] HAPPY: Get salary structure",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure/{{employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure",
+            "{{employee_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Returns basic 25000', function() { pm.expect(resData.basic).to.eql(25000); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[09] EDGE: No structure for employee",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure/00000000-0000-0000-0000-000000000099",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure",
+            "00000000-0000-0000-0000-000000000099"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[10] HAPPY: Update salary (raise)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure/{{employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure",
+            "{{employee_id}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"basic\": 30000,\n  \"hra\": 12000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Basic updated to 30000', function() { pm.expect(resData.basic).to.eql(30000); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[11] HAPPY: Verify PF recalculated",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure/{{minimal_employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure",
+            "{{minimal_employee_id}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{minimal_employee_id}}\",\n  \"basic\": 20000,\n  \"hra\": 10000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('PF capped at 1800 even if basic is >15k', function() { pm.expect(resData.pfEmployee).to.eql(1800); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[12] HAPPY: Initiate payroll run",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run?month=4&year={{payroll_test_year}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run"
+          ],
+          "query": [
+            {
+              "key": "month",
+              "value": "4"
+            },
+            {
+              "key": "year",
+              "value": "{{payroll_test_year}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.environment.set('payroll_run_id', resData.id);",
+              "pm.test('Status is DRAFT or PROCESSING', function() { pm.expect(['DRAFT', 'PROCESSING', 'PENDING_APPROVAL']).to.include(resData.status); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[13] EDGE: Duplicate month/year/org",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run?month=4&year={{payroll_test_year}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run"
+          ],
+          "query": [
+            {
+              "key": "month",
+              "value": "4"
+            },
+            {
+              "key": "year",
+              "value": "{{payroll_test_year}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 409', function () { pm.response.to.have.status(409); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[14] EDGE: Invalid month",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run?month=13&year={{payroll_test_year}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run"
+          ],
+          "query": [
+            {
+              "key": "month",
+              "value": "13"
+            },
+            {
+              "key": "year",
+              "value": "{{payroll_test_year}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[15] EDGE: Future month",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run?month=1&year={{payroll_test_year_future}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run"
+          ],
+          "query": [
+            {
+              "key": "month",
+              "value": "1"
+            },
+            {
+              "key": "year",
+              "value": "{{payroll_test_year_future}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status in [201, 409]', function () { pm.expect(pm.response.code).to.be.oneOf([201, 409]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[16] RBAC: Employee cannot run payroll",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run?month=5&year=2026",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run"
+          ],
+          "query": [
+            {
+              "key": "month",
+              "value": "5"
+            },
+            {
+              "key": "year",
+              "value": "2026"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[17] HAPPY: Check run status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id}}/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id}}",
+            "status"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Has status', function() { pm.expect(resData.status).to.exist; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[18] HAPPY: Poll until PENDING_APPROVAL",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id}}/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id}}",
+            "status"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });",
+              "pm.test('Wait 3s for processing', function (done) { setTimeout(done, 3000); });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Status is PENDING_APPROVAL', function() { pm.expect(resData.status).to.eql('PENDING_APPROVAL'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[19] EDGE: Non-existent run ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/00000000-0000-0000-0000-000000000099/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "00000000-0000-0000-0000-000000000099",
+            "status"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[20] HAPPY: Approve payroll run",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id}}/approve",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id}}",
+            "approve"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Status is APPROVED', function() { pm.expect(resData.status).to.eql('APPROVED'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[21] EDGE: Approve already-approved run",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id}}/approve",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id}}",
+            "approve"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 423', function () { pm.response.to.have.status(423); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setup Fake Run for Edge Approve",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run?month=2&year={{payroll_test_year}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run"
+          ],
+          "query": [
+            {
+              "key": "month",
+              "value": "2"
+            },
+            {
+              "key": "year",
+              "value": "{{payroll_test_year}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.environment.set('payroll_run_id_edge_approve', resData.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[23] EDGE: Approve run in DRAFT/PROCESSING",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id_edge_approve}}/approve",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id_edge_approve}}",
+            "approve"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 423', function () { pm.response.to.have.status(423); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setup Fake Run for Reject",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run?month=3&year={{payroll_test_year}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run"
+          ],
+          "query": [
+            {
+              "key": "month",
+              "value": "3"
+            },
+            {
+              "key": "year",
+              "value": "{{payroll_test_year}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.environment.set('payroll_run_id_reject', resData.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[25] EDGE: Non-existent run approve",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/00000000-0000-0000-0000-000000000099/approve",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "00000000-0000-0000-0000-000000000099",
+            "approve"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[26] HAPPY: Poll for Reject status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id_reject}}/status",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id_reject}}",
+            "status"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });",
+              "pm.test('Wait 2s for processing', function (done) { setTimeout(done, 2000); });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Expected pending approval', function() { pm.expect(resData.status).to.eql('PENDING_APPROVAL'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[27] HAPPY: Reject payroll run",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id_reject}}/reject",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id_reject}}",
+            "reject"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[28] EDGE: Reject already-rejected run",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id_reject}}/reject",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id_reject}}",
+            "reject"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 423', function () { pm.response.to.have.status(423); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[29] EDGE: Reject run in DRAFT/PROCESSING",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id_edge_approve}}/reject",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id_edge_approve}}",
+            "reject"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status in [423, 200]', function () { pm.expect(pm.response.code).to.be.oneOf([423, 200]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[30] HAPPY: List all payroll runs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/runs",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "runs"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Has runs', function() { pm.expect(resData.length).to.be.at.least(1); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[31] EDGE: Empty list for new org (Skip)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/runs?page=99",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "runs?page=99"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Empty array on page out of bounds', function() { pm.expect(resData.length).to.eql(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[32] HAPPY: Get payslips for run",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id}}/payslips",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id}}",
+            "payslips"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Has payslips', function() { pm.expect(resData).to.be.an('array'); });",
+              "pm.test('Payslips count > 0', function() { pm.expect(resData.length).to.be.above(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[33] HAPPY: Verify statutory deductions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id}}/payslips",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id}}",
+            "payslips"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "var payslips = resData;",
+              "var p = payslips.find(x => x.employeeId === pm.environment.get('employee_id'));",
+              "pm.test('PF checked', function() { pm.expect(p.pfDeduction).to.exist; });",
+              "pm.test('ESIC checked', function() { pm.expect(p.esicDeduction).to.exist; });",
+              "pm.test('PT checked', function() { pm.expect(p.ptDeduction).to.exist; });",
+              "pm.test('TDS checked', function() { pm.expect(p.tdsDeduction).to.exist; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[34] HAPPY: Verify net payable",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{payroll_run_id}}/payslips",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{payroll_run_id}}",
+            "payslips"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "var payslips = resData;",
+              "var p = payslips.find(x => x.employeeId === pm.environment.get('employee_id'));",
+              "var totalDed = p.pfDeduction + p.esicDeduction + p.ptDeduction + p.tdsDeduction + p.otherDeductions;",
+              "pm.test('Net payable correct', function() { pm.expect(p.netPayable).to.eql(p.grossEarnings - totalDed); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setup Fake Run DRAFT for Payslips",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run?month=11&year={{payroll_test_year}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run"
+          ],
+          "query": [
+            {
+              "key": "month",
+              "value": "11"
+            },
+            {
+              "key": "year",
+              "value": "{{payroll_test_year}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.environment.set('curr_draft_run', resData.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[36] EDGE: Payslips for DRAFT run",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/{{curr_draft_run}}/payslips",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "{{curr_draft_run}}",
+            "payslips"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('Array could be empty', function() { pm.expect(resData).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[37] EDGE: Non-existent run payslips",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/run/00000000-0000-0000-0000-000000000099/payslips",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "run",
+            "00000000-0000-0000-0000-000000000099",
+            "payslips"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setup PF Capped",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure/{{employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure",
+            "{{employee_id}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"basic\": 50000,\n  \"hra\": 25000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "[39] HAPPY: PF capped at 15K base",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure/{{employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure",
+            "{{employee_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('PF deduction capped at 1800', function() { pm.expect(resData.pfEmployee).to.eql(1800); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Setup ESIC low",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure/{{minimal_employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure",
+            "{{minimal_employee_id}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{minimal_employee_id}}\",\n  \"basic\": 10000,\n  \"hra\": 5000\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: ESIC applied if gross <= 21K",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure/{{minimal_employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure",
+            "{{minimal_employee_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('ESIC applied', function() { pm.expect(resData.esicEmployee).to.be.above(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: ESIC NOT applied if gross > 21K",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/payroll/salary-structure/{{employee_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "payroll",
+            "salary-structure",
+            "{{employee_id}}"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resBody = pm.response.json();",
+              "var resData = resBody.data || resBody;",
+              "pm.test('ESIC is 0 (Gross Salary > 21k)', function() { pm.expect(resData.esicEmployee).to.eql(0); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

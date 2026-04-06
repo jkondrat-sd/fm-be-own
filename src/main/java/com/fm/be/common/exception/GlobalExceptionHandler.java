@@ -87,6 +87,29 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles database integrity violations (FK violations, etc.) that aren't caught by manual checks.
+     */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(
+            org.springframework.dao.DataIntegrityViolationException ex) {
+        log.warn("Database integrity violation: {}", ex.getMessage());
+
+        String message = "Database constraint violation";
+        if (ex.getMessage() != null && ex.getMessage().contains("foreign key")) {
+            message = "Related resource not found";
+        }
+
+        ApiError apiError = ApiError.builder()
+                .code(ErrorCode.VALIDATION_ERROR.name())
+                .message(message)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(apiError));
+    }
+
+    /**
      * Handles business rule violations (geofence, face mismatch, payroll locked, etc.).
      */
     @ExceptionHandler(BusinessRuleException.class)

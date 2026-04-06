@@ -7,6 +7,7 @@ import com.fm.be.common.dto.PaginationMeta;
 import com.fm.be.common.exception.BusinessRuleException;
 import com.fm.be.common.exception.DuplicateResourceException;
 import com.fm.be.common.exception.ResourceNotFoundException;
+import com.fm.be.modules.employees.EmployeeRepository;
 import com.fm.be.modules.payroll.dto.CreateSalaryStructureDto;
 import com.fm.be.modules.payroll.dto.PayrollRunResponseDto;
 import com.fm.be.modules.payroll.dto.PayslipResponseDto;
@@ -43,6 +44,7 @@ public class PayrollService {
     private final SalaryStructureRepository salaryStructureRepository;
     private final PayrollRunRepository payrollRunRepository;
     private final PayslipRepository payslipRepository;
+    private final EmployeeRepository employeeRepository;
     private final PayrollCalculationService calculationService;
     private final com.fm.be.scheduler.PayrollJobScheduler payrollJobScheduler;
 
@@ -58,6 +60,11 @@ public class PayrollService {
     @Transactional
     public SalaryStructureResponseDto createSalaryStructure(
             CreateSalaryStructureDto dto) {
+        log.debug("Creating salary structure for employee: {}", dto.getEmployeeId());
+        if (!employeeRepository.existsById(dto.getEmployeeId())) {
+            throw new ResourceNotFoundException("Employee", "id", dto.getEmployeeId());
+        }
+
         if (salaryStructureRepository.existsByEmployeeId(
                 dto.getEmployeeId())) {
             throw new DuplicateResourceException(
@@ -148,10 +155,15 @@ public class PayrollService {
      * @param processedBy the admin user UUID who initiated the run
      * @return the created payroll run
      */
-    @Transactional
     public PayrollRunResponseDto initiatePayrollRun(int month, int year,
                                                      UUID organizationId,
                                                      UUID processedBy) {
+        log.info("Initiating payroll run request: month={}, year={}, orgId={}", month, year, organizationId);
+        if (month < 1 || month > 12) {
+            throw new BusinessRuleException(ErrorCode.VALIDATION_ERROR,
+                    "Invalid month: " + month);
+        }
+
         if (payrollRunRepository.existsByMonthAndYearAndOrganizationId(
                 month, year, organizationId)) {
             throw new DuplicateResourceException(

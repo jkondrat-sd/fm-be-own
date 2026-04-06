@@ -451,16 +451,10 @@
 ---
 
 ### TASK-3.10: Suite 09 — Payroll (COMPLEX)
-**Status**: ⬜ Not Started  
-**Date Added**: 2026-04-03  
-**Tests**: 35  
+**Status**: ✅ COMPLETED  
+**Date Completed**: 2026-04-06  
+**Tests**: 42  
 **Reference**: `PLANNING.md` §4.10
-
-- ⬜ Create `tests/postman/suites/09-payroll/fm-be-09-payroll.postman_collection.json`
-- ⬜ Implement salary-structure CRUD, payroll run lifecycle, payslips
-- ⬜ Verify PF/ESIC/TDS/PT statutory compliance math
-
-**Endpoints**: salary-structure CRUD, payroll run lifecycle, payslips  
 **Key tests**: salary creation, PF/ESIC/TDS/PT verification, payroll run (initiate → poll → approve/reject), payslip statutory compliance  
 **Indian compliance verification**:
 - PF: 12% of basic capped at ₹15,000
