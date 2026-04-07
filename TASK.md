@@ -305,14 +305,17 @@
 ---
 
 ### TASK-3.6: Suite 05 — Shifts
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-03  
-**Tests**: 22  
+**Date Completed**: 2026-04-07
+**Tests**: 15 in Postman, 17 in Python
 **Reference**: `PLANNING.md` §4.6
 
-- ⬜ Create `tests/postman/suites/05-shifts/fm-be-05-shifts.postman_collection.json`
-- ⬜ Implement CRUD `/v1/shifts`, assign, schedule
-- ⬜ Day/night shift, duplicate assignment (409), employee schedule view, admin view
+- ✅ Create `tests/postman/suites/05-shifts/fm-be-05-shifts.postman_collection.json`
+- ✅ Implement CRUD `/v1/shifts`, assign, schedule
+- ✅ Day/night shift, duplicate assignment (409), employee schedule view, admin view
+- ✅ Fixed constraint validation bug in `ShiftService.java` for EDGE site testing
+- ✅ Created `fix_shifts_suite.py` as an automated Python parallel suite with Redis OTP fetching
 
 **Endpoints**: CRUD `/v1/shifts`, assign, schedule  
 **Key tests**: day/night shift, duplicate assignment (409), employee schedule view, admin view  

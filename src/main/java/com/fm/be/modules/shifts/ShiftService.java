@@ -10,6 +10,7 @@ import com.fm.be.modules.shifts.dto.ShiftAssignmentDto;
 import com.fm.be.modules.shifts.dto.UpdateShiftDto;
 import com.fm.be.modules.shifts.entity.Shift;
 import com.fm.be.modules.shifts.entity.ShiftAssignment;
+import com.fm.be.modules.sites.SiteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -40,6 +41,7 @@ public class ShiftService {
 
     private final ShiftRepository shiftRepository;
     private final ShiftAssignmentRepository assignmentRepository;
+    private final SiteRepository siteRepository;
     private final StringRedisTemplate redisTemplate;
 
     /**
@@ -50,6 +52,10 @@ public class ShiftService {
      */
     @Transactional
     public Shift createShift(CreateShiftDto dto) {
+        if (!siteRepository.existsById(dto.getSiteId())) {
+            throw new ResourceNotFoundException("Site", "id", dto.getSiteId());
+        }
+
         Shift shift = Shift.builder()
                 .siteId(dto.getSiteId())
                 .name(dto.getName())

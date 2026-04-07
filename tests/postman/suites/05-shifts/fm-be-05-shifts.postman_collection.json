@@ -1,0 +1,797 @@
+{
+  "info": {
+    "name": "FM-BE - 05-Shifts",
+    "_postman_id": "8f87137f-676b-4835-ae5a-8b1e06d9d134",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "6.1 HAPPY: Create day shift",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\",\n  \"name\": \"Day Shift\",\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"18:00:00\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });",
+              "console.log('Using site_id: ' + pm.environment.get('site_id'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) {",
+              "    const resData = pm.response.json();",
+              "    const shift = resData.data;",
+              "    pm.test('Has ID', function () { pm.expect(shift.id).to.be.a('string'); });",
+              "    pm.test('Name matches', function () { pm.expect(shift.name).to.eql('Day Shift'); });",
+              "    pm.environment.set('shift_id', shift.id);",
+              "} else {",
+              "    console.error('Create shift failed with status ' + pm.response.code + ': ' + pm.response.text());",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.2 HAPPY: Create night shift",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\",\n  \"name\": \"Night Shift\",\n  \"startTime\": \"22:00:00\",\n  \"endTime\": \"06:00:00\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) {",
+              "    const resData = pm.response.json();",
+              "    const shift = resData.data;",
+              "    pm.test('Has ID', function () { pm.expect(shift.id).to.be.a('string'); });",
+              "    pm.environment.set('shift_id_night', shift.id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.3 EDGE: Missing siteId",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Invalid Shift\",\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"18:00:00\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });",
+              "pm.test('Details mention siteId', function () { pm.expect(resData.error.details).to.have.property('siteId'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.4 EDGE: Missing name",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\",\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"18:00:00\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(resData.error.code).to.eql('VALIDATION_ERROR'); });",
+              "pm.test('Details mention name', function () { pm.expect(resData.error.details).to.have.property('name'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.5 EDGE: Non-existent site",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"00000000-0000-4000-a000-000000000099\",\n  \"name\": \"Ghost Shift\",\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"18:00:00\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code RESOURCE_NOT_FOUND', function () { pm.expect(resData.error.code).to.eql('RESOURCE_NOT_FOUND'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.6 RBAC: Employee cannot create shift",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"siteId\": \"{{site_id}}\",\n  \"name\": \"Forbidden Shift\",\n  \"startTime\": \"09:00:00\",\n  \"endTime\": \"18:00:00\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + (empToken || 'invalid-token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.7 Update shift time",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts/{{shift_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts",
+            "{{shift_id}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"startTime\": \"08:00:00\",\n  \"name\": \"Day Shift - Early\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "if (pm.response.code === 200) {",
+              "    const resData = pm.response.json();",
+              "    const shift = resData.data;",
+              "    pm.test('Name updated', function () { pm.expect(shift.name).to.eql('Day Shift - Early'); });",
+              "    pm.test('Time updated', function () { pm.expect(shift.startTime).to.contain('08:00'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.8 Deactivate shift",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts/{{shift_id_night}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts",
+            "{{shift_id_night}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"isActive\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "if (pm.response.code === 200) {",
+              "    const resData = pm.response.json();",
+              "    const shift = resData.data;",
+              "    pm.test('isActive is false', function () { pm.expect(shift.active).to.be.false; });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.10 List shifts for site",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts/site/{{site_id}}?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts",
+            "site",
+            "{{site_id}}"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "if (pm.response.code === 200) {",
+              "    const resData = pm.response.json();",
+              "    pm.test('Data is array', function () { pm.expect(resData.data).to.be.an('array'); });",
+              "    pm.test('At least 1 shift exists', function () { pm.expect(resData.data.length).to.be.at.least(1); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.12 HAPPY: Assign employee to shift",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts/assign",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts",
+            "assign"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"shiftId\": \"{{shift_id}}\",\n  \"date\": \"{{assignment_date}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });",
+              "const today = new Date().toISOString().split('T')[0];",
+              "pm.environment.set('assignment_date', today);",
+              "pm.request.body.raw = JSON.stringify({",
+              "    employeeId: pm.environment.get('employee_id'),",
+              "    shiftId: pm.environment.get('shift_id'),",
+              "    date: today",
+              "});"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "if (pm.response.code === 201) {",
+              "    const resData = pm.response.json();",
+              "    const assignment = resData.data;",
+              "    pm.test('Has assignment ID', function () { pm.expect(assignment.id).to.be.a('string'); });",
+              "    pm.environment.set('shift_assignment_id', assignment.id);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.13 EDGE: Duplicate assignment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts/assign",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts",
+            "assign"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"shiftId\": \"{{shift_id}}\",\n  \"date\": \"{{assignment_date}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 409', function () { pm.response.to.have.status(409); });",
+              "const resData = pm.response.json();",
+              "pm.test('Error code DUPLICATE_RESOURCE', function () { pm.expect(resData.error.code).to.eql('DUPLICATE_RESOURCE'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.16 Employee views own schedule",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts/schedule?startDate={{assignment_date}}&endDate={{assignment_date}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts",
+            "schedule"
+          ],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "{{assignment_date}}"
+            },
+            {
+              "key": "endDate",
+              "value": "{{assignment_date}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + (empToken || 'invalid-token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "if (!empToken) {",
+              "    pm.test('SKIP: employee_access_token not set (requires OTP automation)', function () {",
+              "        console.warn('Test skipped: employee_access_token not available.');",
+              "    });",
+              "} else {",
+              "    pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "    if (pm.response.code === 200) {",
+              "        const resData = pm.response.json();",
+              "        pm.test('Data is array', function () { pm.expect(resData.data).to.be.an('array'); });",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.17 Admin views employee schedule",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts/schedule?employeeId={{employee_id}}&startDate={{assignment_date}}&endDate={{assignment_date}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts",
+            "schedule"
+          ],
+          "query": [
+            {
+              "key": "employeeId",
+              "value": "{{employee_id}}"
+            },
+            {
+              "key": "startDate",
+              "value": "{{assignment_date}}"
+            },
+            {
+              "key": "endDate",
+              "value": "{{assignment_date}}"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "if (pm.response.code === 200) {",
+              "    const resData = pm.response.json();",
+              "    pm.test('Schedule found', function () { pm.expect(resData.data.length).to.be.at.least(1); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6.21 RBAC: Employee cannot assign",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/shifts/assign",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "shifts",
+            "assign"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"employeeId\": \"{{employee_id}}\",\n  \"shiftId\": \"{{shift_id}}\",\n  \"date\": \"{{assignment_date}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const empToken = pm.environment.get('employee_access_token');",
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + (empToken || 'invalid-token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
