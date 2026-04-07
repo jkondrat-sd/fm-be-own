@@ -1,0 +1,772 @@
+{
+  "info": {
+    "name": "FM-BE - 10-Notifications",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "HAPPY: Send notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/send",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{admin_user_id}}\",\n  \"title\": \"Test Title\",\n  \"body\": \"Hello body message\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var body = pm.response.json();",
+              "var resData = body.data;",
+              "pm.test('Has ID', function () { pm.expect(resData.id).to.be.a('string'); });",
+              "pm.test('Has unread=true', function () { pm.expect(resData.read).to.eql(false); });",
+              "pm.environment.set('notification_id', resData.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Send with metadata",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/send",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{admin_user_id}}\",\n  \"title\": \"Alert Title\",\n  \"body\": \"Alert body\",\n  \"type\": \"ALERT\",\n  \"metadata\": {\n    \"key\": \"value\"\n  }\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+              "var body = pm.response.json();",
+              "var resData = body.data;",
+              "pm.test('Metadata present', function () { pm.expect(resData.metadata).to.be.an('object'); pm.expect(resData.metadata.key).to.eql('value'); });",
+              "pm.test('Type matches', function () { pm.expect(resData.type).to.eql('ALERT'); });",
+              "pm.environment.set('notification_id_2', resData.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing userId",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/send",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"No User Title\",\n  \"body\": \"No User Body\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "var body = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(body.error.code).to.eql('VALIDATION_ERROR'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing title",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/send",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{admin_user_id}}\",\n  \"body\": \"Missing Title Body\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "var body = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(body.error.code).to.eql('VALIDATION_ERROR'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Non-existent userId",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/send",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"00000000-0000-0000-0000-000000000099\",\n  \"title\": \"Fake User Title\",\n  \"body\": \"Fake User Body\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// A foreign key constraint causes a DataIntegrityViolationException which maps to 400 Bad Request",
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });",
+              "var body = pm.response.json();",
+              "pm.test('Error code VALIDATION_ERROR', function () { pm.expect(body.error.code).to.eql('VALIDATION_ERROR'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "RBAC: Employee cannot send",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/send",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "send"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{admin_user_id}}\",\n  \"title\": \"Employee attempt\",\n  \"body\": \"Should fail\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: List notifications",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications?page=1&limit=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications?page=1&limit=10"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "pm.test('Data array', function () { pm.expect(body.data.notifications).to.be.an('array'); });",
+              "pm.test('Has unreadCount', function () { pm.expect(body.data.unreadCount).to.exist; });",
+              "pm.environment.set('initial_unread_count', body.data.unreadCount);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Unread count is correct",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "pm.test('Unread count is at least 2', function () { pm.expect(body.data.unreadCount).to.be.at.least(2); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Empty notifications",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "// Employee should have 0 notifications",
+              "pm.test('Empty or no unread', function () { ",
+              "  if (body.data.notifications.length === 0) {",
+              "    pm.expect(body.data.unreadCount).to.eql(0);",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Mark as read",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/{{notification_id}}/read",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "{{notification_id}}",
+            "read"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "pm.test('read is true', function () { pm.expect(body.data.read).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Unread count decrements",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var body = pm.response.json();",
+              "var initial = pm.environment.get('initial_unread_count');",
+              "pm.test('Unread count decremented', function () { ",
+              "  if (initial) {",
+              "    pm.expect(body.data.unreadCount).to.be.lessThan(initial);",
+              "  }",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Already read notification",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/{{notification_id}}/read",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "{{notification_id}}",
+            "read"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });",
+              "var body = pm.response.json();",
+              "if (body && body.data) { pm.test('read still true', function () { pm.expect(body.data.read).to.eql(true); }); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Non-existent notification",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/00000000-0000-0000-0000-000000000099/read",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "00000000-0000-0000-0000-000000000099",
+            "read"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.response.to.have.status(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Register FCM token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/register-device",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "register-device"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fcmToken\": \"test-fcm-token-12345\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204 or 200', function () { pm.expect(pm.response.code).to.be.oneOf([204, 200]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HAPPY: Re-register same token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/register-device",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "register-device"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fcmToken\": \"test-fcm-token-12345\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 204 or 200', function () { pm.expect(pm.response.code).to.be.oneOf([204, 200]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "EDGE: Missing fcmToken",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/notifications/register-device",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "notifications",
+            "register-device"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fcmToken\": \"\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 400', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
