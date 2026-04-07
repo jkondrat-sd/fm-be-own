@@ -470,13 +470,14 @@
 ---
 
 ### TASK-3.11: Suite 10 — Notifications
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-03  
+**Date Completed**: 2026-04-07
 **Tests**: 16  
 **Reference**: `PLANNING.md` §4.11
 
-- ⬜ Create `tests/postman/suites/10-notifications/fm-be-10-notifications.postman_collection.json`
-- ⬜ Implement send, list, mark read, register device
+- ✅ Create `tests/postman/suites/10-notifications/fm-be-10-notifications.postman_collection.json`
+- ✅ Implement send, list, mark read, register device
 
 **Endpoints**: send, list, mark read, register device  
 **Key tests**: send with/without metadata, unread count, mark read (idempotent), device registration  

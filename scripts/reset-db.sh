@@ -20,11 +20,11 @@ echo -e "${RED}║  WARNING: This will DELETE all data!     ║${NC}"
 echo -e "${RED}╚══════════════════════════════════════════╝${NC}"
 echo ""
 
-read -p "Are you sure? Type 'yes' to confirm: " CONFIRM
-if [ "$CONFIRM" != "yes" ]; then
-    echo "Aborted."
-    exit 0
-fi
+# read -p "Are you sure? Type 'yes' to confirm: " CONFIRM
+# if [ "$CONFIRM" != "yes" ]; then
+#     echo "Aborted."
+#     exit 0
+# fi
 
 DB_NAME="${DB_NAME:-fm_db}"
 DB_USER="${DB_USER:-user}"
