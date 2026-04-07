@@ -486,13 +486,14 @@
 ---
 
 ### TASK-3.12: Suite 11 — Media
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-03  
+**Date Completed**: 2026-04-07
 **Tests**: 12  
 **Reference**: `PLANNING.md` §4.12
 
-- ⬜ Create `tests/postman/suites/11-media/fm-be-11-media.postman_collection.json`
-- ⬜ Implement presigned-url, confirm
+- ✅ Create `tests/postman/suites/11-media/fm-be-11-media.postman_collection.json`
+- ✅ Implement presigned-url, confirm
 
 **Endpoints**: presigned-url, confirm  
 **Key tests**: image/video/document URLs, file size limits (5MB image, 50MB video), unsupported type, confirm upload  
