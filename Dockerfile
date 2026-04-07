@@ -3,7 +3,7 @@
 # ============================================================
 
 # --- Stage 1: Build ---
-FROM eclipse-temurin:17-jdk-alpine AS builder
+FROM eclipse-temurin:17-jdk-jammy AS builder
 
 WORKDIR /app
 COPY pom.xml .
@@ -18,9 +18,10 @@ COPY src ./src
 RUN ./mvnw package -DskipTests -B
 
 # --- Stage 2: Runtime ---
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 
-RUN addgroup -S fmapp && adduser -S fmapp -G fmapp
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+RUN groupadd -r fmapp && useradd -r -g fmapp fmapp
 
 WORKDIR /app
 

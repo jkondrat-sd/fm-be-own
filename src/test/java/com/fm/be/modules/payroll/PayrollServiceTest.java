@@ -5,6 +5,7 @@ import com.fm.be.common.constants.PayrollStatus;
 import com.fm.be.common.exception.BusinessRuleException;
 import com.fm.be.common.exception.DuplicateResourceException;
 import com.fm.be.common.exception.ResourceNotFoundException;
+import com.fm.be.modules.employees.EmployeeRepository;
 import com.fm.be.modules.payroll.dto.CreateSalaryStructureDto;
 import com.fm.be.modules.payroll.dto.PayrollRunResponseDto;
 import com.fm.be.modules.payroll.dto.PayslipResponseDto;
@@ -51,6 +52,8 @@ class PayrollServiceTest {
     @Mock
     private PayslipRepository payslipRepository;
     @Mock
+    private EmployeeRepository employeeRepository;
+    @Mock
     private PayrollCalculationService calculationService;
     @Mock
     private com.fm.be.scheduler.PayrollJobScheduler payrollJobScheduler;
@@ -69,6 +72,8 @@ class PayrollServiceTest {
         @Test
         @DisplayName("should create structure with computed deductions")
         void createSalaryStructure_validData_creates() {
+            when(employeeRepository.existsById(employeeId))
+                    .thenReturn(true);
             when(salaryStructureRepository.existsByEmployeeId(employeeId))
                     .thenReturn(false);
             when(calculationService.calculatePfEmployee(any()))
@@ -109,6 +114,8 @@ class PayrollServiceTest {
         @Test
         @DisplayName("should throw on duplicate employee structure")
         void createSalaryStructure_duplicate_throws() {
+            when(employeeRepository.existsById(employeeId))
+                    .thenReturn(true);
             when(salaryStructureRepository.existsByEmployeeId(employeeId))
                     .thenReturn(true);
 

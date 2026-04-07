@@ -8,7 +8,7 @@
 
 services:
   postgres:
-    image: postgis/postgis:16-3.4-alpine
+    image: imresamu/postgis:17-3.5
     container_name: fm-postgres
     environment:
       POSTGRES_DB: fm_db
@@ -25,7 +25,7 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: redis:7
     container_name: fm-redis
     ports:
       - "6379:6379"
@@ -38,17 +38,17 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
+    image: bitnami/minio:latest
     container_name: fm-minio
-    command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_DEFAULT_BUCKETS: fm-media
     ports:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - fm_miniodata:/data
+      - fm_miniodata:/bitnami/minio/data
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
       interval: 10s
