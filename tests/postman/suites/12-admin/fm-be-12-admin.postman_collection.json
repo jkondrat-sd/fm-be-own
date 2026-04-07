@@ -1,0 +1,918 @@
+{
+  "info": {
+    "name": "12. Admin Suite",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "12.00 BOOTSTRAP: Login Super Admin",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/auth/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"superadmin@fmplatform.com\",\n  \"password\": \"Admin@123456\"\n}"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.remove('Authorization');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.environment.set('super_admin_access_token', resData.accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.01 HAPPY: List all audit logs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/audit-logs",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "audit-logs"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('super_admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.test('Is array', function() { pm.expect(resData).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.02 HAPPY: Filter audit logs by userId",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/audit-logs?userId={{admin_user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "audit-logs"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "{{admin_user_id}}"
+            }
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('super_admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.test('Is array', function() { pm.expect(resData).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.03 HAPPY: Filter audit logs by action",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/audit-logs?action=CREATE_USER",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "audit-logs"
+          ],
+          "query": [
+            {
+              "key": "action",
+              "value": "CREATE_USER"
+            }
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('super_admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.test('Is array', function() { pm.expect(resData).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.04 EDGE: No matching audit logs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/audit-logs?userId=00000000-0000-0000-0000-000000000000",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "audit-logs"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "00000000-0000-0000-0000-000000000000"
+            }
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('super_admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.test('Is empty array', function() { pm.expect(resData.length).to.equal(0); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.05 RBAC: Admin cannot view audit logs",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/audit-logs",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "audit-logs"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.06 HAPPY: Get dashboard stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/dashboard/stats",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "dashboard",
+            "stats"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.test('Has stats fields', function() { ",
+              "  pm.expect(resData).to.have.property('totalUsers');",
+              "  pm.expect(resData).to.have.property('totalEmployees');",
+              "  pm.expect(resData).to.have.property('totalSites');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.07 HAPPY: Verify counts are correct (Admin auth)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/dashboard/stats",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "dashboard",
+            "stats"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.test('Values are numbers', function() { ",
+              "  pm.expect(resData.totalUsers).to.be.a('number');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.08 RBAC: Employee cannot view stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/dashboard/stats",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "dashboard",
+            "stats"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.09 HAPPY: Export users CSV",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/export/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "export",
+            "users"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Is CSV content', function() {",
+              "  pm.expect(pm.response.headers.get('Content-Disposition')).to.include('users_export.csv');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.10 HAPPY: Export employees CSV",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/export/employees",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "export",
+            "employees"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.11 HAPPY: Export sites CSV",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/export/sites",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "export",
+            "sites"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.12 EDGE: Unknown entity export",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/export/foobar",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "export",
+            "foobar"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 404', function () { pm.expect(pm.response.code).to.equal(404); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.13 RBAC: Employee cannot export",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/export/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "export",
+            "users"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.14 HAPPY: Get system config",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/config",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "config"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('super_admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.test('Has config property', function() { pm.expect(resData).to.have.property('config'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.15 RBAC: Admin cannot view config",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/config",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "config"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.16 HAPPY: Update config value",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/config",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "config"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"config\": {\n    \"testKey\": \"testValue\"\n  }\n}"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('super_admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.test('Config has testKey', function() { pm.expect(resData.config.testKey).to.equal('testValue'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.17 HAPPY: Verify config persists",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/config",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "config"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('super_admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+              "var resData = pm.response.json().data;",
+              "pm.test('Config has testKey', function() { pm.expect(resData.config.testKey).to.equal('testValue'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.18 RBAC: Admin cannot update config",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/config",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "config"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"config\": {\n    \"testKey\": \"adminValue\"\n  }\n}"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.19 EDGE: Empty config object",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/config",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "config"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"config\": {}\n}"
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('super_admin_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12.20 RBAC: Employee cannot access config",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v1/admin/config",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v1",
+            "admin",
+            "config"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + pm.environment.get('employee_access_token') });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 403', function () { pm.expect(pm.response.code).to.be.oneOf([401, 403]); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -177,7 +177,7 @@ public class AdminService {
      * @param ipAddress the request IP
      * @return CSV content string
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public String exportData(String entity, UUID actingUserId,
                              String ipAddress) {
         String csv;

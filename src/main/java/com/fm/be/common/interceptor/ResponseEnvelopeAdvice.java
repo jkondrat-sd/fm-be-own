@@ -28,7 +28,15 @@ public class ResponseEnvelopeAdvice implements ResponseBodyAdvice<Object> {
     public boolean supports(MethodParameter returnType,
                             Class<? extends HttpMessageConverter<?>> converterType) {
         // Don't wrap String responses to avoid ClassCastException
-        return !returnType.getParameterType().equals(String.class);
+        if (returnType.getParameterType().equals(String.class)) {
+            return false;
+        }
+        // Don't wrap byte[] responses to avoid ClassCastException by ByteArrayHttpMessageConverter
+        if (converterType.equals(org.springframework.http.converter.ByteArrayHttpMessageConverter.class) ||
+            returnType.getParameterType().equals(byte[].class)) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -43,6 +51,11 @@ public class ResponseEnvelopeAdvice implements ResponseBodyAdvice<Object> {
                                   ServerHttpResponse response) {
         // Don't double-wrap if already an ApiResponse
         if (body instanceof ApiResponse) {
+            return body;
+        }
+        
+        // Don't wrap byte arrays (e.g., CSV or file downloads)
+        if (body instanceof byte[]) {
             return body;
         }
 

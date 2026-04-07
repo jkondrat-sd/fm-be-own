@@ -61,6 +61,11 @@ INSERT INTO users (id, email, password_hash, role, is_active, preferred_lang, or
 VALUES ('${ADMIN_USER_ID}', 'admin@fmplatform.com', crypt('Admin@123456', gen_salt('bf', 10)), 'ADMIN', true, 'en', '${ORG_ID}', NOW(), NOW())
 ON CONFLICT (id) DO UPDATE SET password_hash = crypt('Admin@123456', gen_salt('bf', 10));
 
+-- 2.5 Super Admin user
+INSERT INTO users (id, email, password_hash, role, is_active, preferred_lang, organization_id, created_at, updated_at)
+VALUES ('00000000-0000-4000-a000-000000000011', 'superadmin@fmplatform.com', crypt('Admin@123456', gen_salt('bf', 10)), 'SUPER_ADMIN', true, 'en', '${ORG_ID}', NOW(), NOW())
+ON CONFLICT (id) DO UPDATE SET password_hash = crypt('Admin@123456', gen_salt('bf', 10));
+
 -- 3. Employee user (phone/OTP login)
 INSERT INTO users (id, phone, role, is_active, preferred_lang, organization_id, created_at, updated_at)
 VALUES ('${EMPLOYEE_USER_ID}', '+919876543210', 'EMPLOYEE', true, 'en', '${ORG_ID}', NOW(), NOW())

@@ -502,13 +502,14 @@
 ---
 
 ### TASK-3.13: Suite 12 — Admin
-**Status**: ⬜ Not Started  
+**Status**: ✅ Done  
 **Date Added**: 2026-04-03  
-**Tests**: 20  
+**Date Completed**: 2026-04-07  
+**Tests**: 21  
 **Reference**: `PLANNING.md` §4.13
 
-- ⬜ Create `tests/postman/suites/12-admin/fm-be-12-admin.postman_collection.json`
-- ⬜ Implement audit-logs, dashboard stats, export, config
+- ✅ Create `tests/postman/suites/12-admin/fm-be-12-admin.postman_collection.json` via python generator
+- ✅ Implement audit-logs, dashboard stats, export, config
 
 **Endpoints**: audit-logs, dashboard stats, export, config  
 **Key tests**: audit log filtering, CSV export (users/employees/sites), system config CRUD, SUPER_ADMIN vs ADMIN RBAC  
