@@ -7,7 +7,7 @@ CREATE INDEX idx_sites_geofence ON sites USING GIST (geofence);
 
 -- Location history spatial index for heatmap queries
 CREATE INDEX idx_location_history_coords ON location_history
-    USING GIST (ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography);
+    USING GIST ((ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography));
 
 -- ===================== Temporal Indexes =====================
 

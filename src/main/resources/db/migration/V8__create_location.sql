@@ -6,8 +6,9 @@ CREATE TABLE location_history (
     latitude        DOUBLE PRECISION NOT NULL,
     longitude       DOUBLE PRECISION NOT NULL,
     accuracy        DOUBLE PRECISION,
-    battery         INTEGER,
-    signal          INTEGER,
+    battery         DOUBLE PRECISION,
+    signal          DOUBLE PRECISION,
     airplane_mode   BOOLEAN          NOT NULL DEFAULT FALSE,
-    recorded_at     TIMESTAMPTZ      NOT NULL
+    recorded_at     TIMESTAMPTZ      NOT NULL,
+    created_at      TIMESTAMPTZ      NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

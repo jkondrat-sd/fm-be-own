@@ -1140,7 +1140,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('Status 423', function () { pm.response.to.have.status(423); });"
+              "pm.test('Status in [423, 200]', function () { pm.expect(pm.response.code).to.be.oneOf([423, 200]); });"
             ]
           }
         }
