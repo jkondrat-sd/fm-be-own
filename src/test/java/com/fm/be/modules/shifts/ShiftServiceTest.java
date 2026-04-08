@@ -9,6 +9,7 @@ import com.fm.be.modules.shifts.dto.ShiftAssignmentDto;
 import com.fm.be.modules.shifts.dto.UpdateShiftDto;
 import com.fm.be.modules.shifts.entity.Shift;
 import com.fm.be.modules.shifts.entity.ShiftAssignment;
+import com.fm.be.modules.sites.SiteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,6 +50,8 @@ class ShiftServiceTest {
     @Mock
     private ShiftAssignmentRepository assignmentRepository;
     @Mock
+    private SiteRepository siteRepository;
+    @Mock
     private StringRedisTemplate redisTemplate;
 
     @InjectMocks
@@ -80,6 +83,7 @@ class ShiftServiceTest {
         @Test
         @DisplayName("should create shift successfully")
         void createShift_validData_creates() {
+            when(siteRepository.existsById(siteId)).thenReturn(true);
             when(shiftRepository.save(any(Shift.class))).thenAnswer(i -> {
                 Shift s = i.getArgument(0);
                 s.setId(UUID.randomUUID());
